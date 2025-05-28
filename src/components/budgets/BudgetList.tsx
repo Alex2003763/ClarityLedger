@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Budget } from '../../types';
 import BudgetItem from './BudgetItem';

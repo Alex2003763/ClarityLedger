@@ -1,4 +1,3 @@
-
 import { CurrencyDefinition } from './types';
 
 export const LOCAL_STORAGE_TRANSACTIONS_PREFIX = 'clarityCoinTransactions_';

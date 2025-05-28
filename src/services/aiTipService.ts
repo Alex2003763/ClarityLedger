@@ -1,4 +1,3 @@
-
 import { LOCAL_STORAGE_OPENROUTER_API_KEY, LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL, DEFAULT_OPENROUTER_MODEL } from '../constants';
 
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';

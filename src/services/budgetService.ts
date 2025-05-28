@@ -1,4 +1,3 @@
-
 import { Budget } from '../types';
 import { LOCAL_STORAGE_BUDGETS_KEY, DEFAULT_USER_ID } from '../constants';
 

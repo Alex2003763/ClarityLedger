@@ -1,4 +1,3 @@
-
 import { Transaction } from '../types';
 import { LOCAL_STORAGE_TRANSACTIONS_PREFIX, DEFAULT_USER_ID } from '../constants';
 

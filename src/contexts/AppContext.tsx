@@ -1,9 +1,8 @@
-
 import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
-import { 
-  Language, 
-  DEFAULT_LANGUAGE, 
-  LOCAL_STORAGE_LANGUAGE_KEY, 
+import {
+  Language,
+  DEFAULT_LANGUAGE,
+  LOCAL_STORAGE_LANGUAGE_KEY,
   LOCAL_STORAGE_DARK_MODE_KEY,
   AVAILABLE_CURRENCIES,
   DEFAULT_CURRENCY_CODE,
@@ -56,7 +55,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   });
 
   const [selectedCurrencySymbol, setSelectedCurrencySymbolState] = useState<string>(() => {
-    const currentCurrency = AVAILABLE_CURRENCIES.find(c => c.code === selectedCurrencyCode);
+    // Initialize based on selectedCurrencyCode's initial value
+    const initialCode = localStorage.getItem(LOCAL_STORAGE_SELECTED_CURRENCY_KEY) || DEFAULT_CURRENCY_CODE;
+    const currentCurrency = AVAILABLE_CURRENCIES.find(c => c.code === initialCode);
     return currentCurrency ? currentCurrency.symbol : (AVAILABLE_CURRENCIES.find(c => c.code === DEFAULT_CURRENCY_CODE)?.symbol || '$');
   });
 
@@ -66,8 +67,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       let translationsData: Translations | null = null;
 
       const fetchTranslationsForLang = async (langToFetch: Language): Promise<Translations | null> => {
-        // Corrected path: '..' to go up one level from 'contexts' to the root, then into 'locales'
-        const path = `../locales/${langToFetch}.json`; 
+        // Vite copies `public` dir contents to the root of `dist`.
+        // So if locales are in `public/locales`, then `index.html` (in `dist`) can fetch `./locales/...`
+        const path = `./locales/${langToFetch}.json`;
         try {
           const response = await fetch(path);
           if (!response.ok) {
@@ -88,7 +90,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       if (!translationsData) {
         console.warn(`Could not load translations for ${effectiveLanguage}. Attempting fallback to ${DEFAULT_LANGUAGE}.`);
         const previousEffectiveLanguage = effectiveLanguage;
-        effectiveLanguage = DEFAULT_LANGUAGE; 
+        effectiveLanguage = DEFAULT_LANGUAGE;
         translationsData = await fetchTranslationsForLang(DEFAULT_LANGUAGE);
         if (!translationsData) {
             console.error(`CRITICAL: Failed to load even default (${DEFAULT_LANGUAGE}) translations after failing for ${previousEffectiveLanguage}. Setting empty translations.`);
@@ -129,15 +131,15 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       if (typeof current === 'object' && current !== null && k in current) {
         current = (current as Record<string, string | Translations>)[k];
       } else {
-        return key; 
+        return key;
       }
     }
-    
+
     let parsedString = typeof current === 'string' ? current : key;
 
     if (replacements && typeof parsedString === 'string') {
       Object.keys(replacements).forEach(placeholder => {
-        parsedString = parsedString.replace(new RegExp(`{${placeholder}}`, 'g'), String(replacements[placeholder]));
+        parsedString = parsedString.replace(new RegExp(`\\{\${placeholder}\\}`, 'g'), String(replacements[placeholder]));
       });
     }
     return parsedString;
@@ -166,11 +168,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
 
   const formatCurrency = useCallback((amount: number): string => {
-    // JPY and CNY typically don't use decimal places for common transactions.
-    // However, for consistency in this app, we'll use 2 decimal places for all unless specified.
-    // If specific formatting per currency is needed, this logic can be expanded.
     const isJPY = selectedCurrencyCode === 'JPY';
-    const isCNY = selectedCurrencyCode === 'CNY';
     // For JPY, no decimals is standard.
     if (isJPY) {
         return `${selectedCurrencySymbol}${amount.toFixed(0)}`;
@@ -178,15 +176,20 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     return `${selectedCurrencySymbol}${amount.toFixed(2)}`;
   }, [selectedCurrencySymbol, selectedCurrencyCode]);
 
+  const contextValue: AppContextType = {
+    language,
+    setLanguage,
+    isDarkMode,
+    setIsDarkMode,
+    t,
+    selectedCurrencyCode,
+    setSelectedCurrencyCode,
+    selectedCurrencySymbol,
+    formatCurrency
+  };
+
   return (
-    <AppContext.Provider value={{ 
-      language, setLanguage, 
-      isDarkMode, setIsDarkMode, 
-      t,
-      selectedCurrencyCode, setSelectedCurrencyCode,
-      selectedCurrencySymbol,
-      formatCurrency
-    }}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );

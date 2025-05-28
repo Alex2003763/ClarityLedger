@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { Budget } from '../../types';
 import Button from '../ui/Button';

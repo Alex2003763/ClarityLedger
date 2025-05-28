@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { getFinancialTip, AiTipError } from '../../services/aiTipService';
 import Button from '../ui/Button';
