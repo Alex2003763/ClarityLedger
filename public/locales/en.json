@@ -1,3 +1,4 @@
+
 {
   "appName": "ClarityCoin",
   "footer": "© {year} ClarityCoin. Manage your finances with clarity.",
@@ -68,30 +69,31 @@
   },
   "dashboard": {
     "loading": "Loading dashboard data...",
-    "recentActivity": "Recent Activity",
+    "transactionsTitle": "Transactions",
     "addTransactionButton": "Add Transaction",
     "expenseBreakdownTitle": "Expense Breakdown",
     "noExpensesForChart": "No expenses recorded yet to show a chart.",
     "noTransactions": "No transactions yet. Add one to get started!",
-    "filtersTitle": "Filters",
-    "showFiltersButton": "Show Filters",
-    "hideFiltersButton": "Hide Filters",
-    "filterKeywordLabel": "Keyword Search",
-    "filterKeywordPlaceholder": "Description or Category...",
-    "filterTypeLabel": "Transaction Type",
-    "filterTypeAll": "All Types",
-    "filterTypeIncome": "Income",
-    "filterTypeExpense": "Expense",
-    "filterStartDateLabel": "Start Date",
-    "filterEndDateLabel": "End Date",
-    "filterMinAmountLabel": "Min Amount",
-    "filterMinAmountPlaceholder": "e.g., 0",
-    "filterMaxAmountLabel": "Max Amount",
-    "filterMaxAmountPlaceholder": "e.g., 1000",
-    "filterTagLabel": "Tag Search",
-    "filterTagPlaceholder": "e.g., work, important",
-    "applyFiltersButton": "Apply Filters",
-    "resetFiltersButton": "Reset Filters",
+    "confirmDeleteTransaction": "Are you sure you want to delete this transaction?",
+    "filters": {
+      "title": "Filters",
+      "show": "Show Filters",
+      "hide": "Hide Filters",
+      "keywordLabel": "Keyword Search",
+      "keywordPlaceholder": "Description or Category...",
+      "typeLabel": "Transaction Type",
+      "typeAll": "All Types",
+      "typeIncome": "Income",
+      "typeExpense": "Expense",
+      "startDateLabel": "Start Date",
+      "endDateLabel": "End Date",
+      "minAmountLabel": "Min Amount",
+      "maxAmountLabel": "Max Amount",
+      "tagLabel": "Tag Search",
+      "tagPlaceholder": "e.g., work, important",
+      "applyButton": "Apply Filters",
+      "resetButton": "Reset Filters"
+    },
     "budgets": {
       "title": "Monthly Budgets",
       "addBudgetButton": "Add Budget",
@@ -104,9 +106,13 @@
       "deleteButtonAriaLabel": "Delete budget for {category}",
       "addBudgetModalTitle": "Add New Budget",
       "editBudgetModalTitle": "Edit Budget",
-      "previousMonth": "Previous Month",
-      "nextMonth": "Next Month"
-    }
+      "confirmDeleteBudget": "Are you sure you want to delete this budget?",
+      "prevMonth": "Previous Month",
+      "nextMonth": "Next Month",
+      "previousMonthAriaLabel": "Go to previous month for budgets",
+      "nextMonthAriaLabel": "Go to next month for budgets"
+    },
+    "addTransactionModalTitle": "Add New Transaction"
   },
   "transactionForm": {
     "modalTitle": "Add New Transaction",

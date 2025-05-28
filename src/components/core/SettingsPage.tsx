@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, ChangeEvent, useRef } from 'react';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -381,8 +382,8 @@ const SettingsPage: React.FC = () => {
 
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <div className="max-w-xl mx-auto bg-white dark:bg-darkSurface p-6 sm:p-8 rounded-xl shadow-xl transition-colors duration-300">
+    <div className="max-w-xl mx-auto"> {/* Removed padding classes, relies on App.tsx main for page padding */}
+      <div className="bg-white dark:bg-darkSurface p-6 sm:p-8 rounded-xl shadow-xl transition-colors duration-300">
         
         <div className="flex items-center mb-10">
           <SettingsIcon className="w-10 h-10 text-primary dark:text-primary-light mr-4" /> {/* Use new SettingsIcon */}

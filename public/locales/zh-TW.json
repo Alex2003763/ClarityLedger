@@ -1,3 +1,4 @@
+
 {
   "appName": "ClarityCoin",
   "footer": "© {year} ClarityCoin。清晰管理您的財務。",
@@ -68,30 +69,31 @@
   },
   "dashboard": {
     "loading": "正在載入儀表板資料...",
-    "recentActivity": "最近活動",
+    "transactionsTitle": "交易記錄",
     "addTransactionButton": "新增交易",
     "expenseBreakdownTitle": "支出分析",
     "noExpensesForChart": "尚無支出記錄可顯示圖表。",
     "noTransactions": "尚無交易記錄。新增一筆開始吧！",
-    "filtersTitle": "篩選器",
-    "showFiltersButton": "顯示篩選器",
-    "hideFiltersButton": "隱藏篩選器",
-    "filterKeywordLabel": "關鍵字搜尋",
-    "filterKeywordPlaceholder": "描述或類別...",
-    "filterTypeLabel": "交易類型",
-    "filterTypeAll": "所有類型",
-    "filterTypeIncome": "收入",
-    "filterTypeExpense": "支出",
-    "filterStartDateLabel": "開始日期",
-    "filterEndDateLabel": "結束日期",
-    "filterMinAmountLabel": "最小金額",
-    "filterMinAmountPlaceholder": "例如：0",
-    "filterMaxAmountLabel": "最大金額",
-    "filterMaxAmountPlaceholder": "例如：1000",
-    "filterTagLabel": "標籤搜尋",
-    "filterTagPlaceholder": "例如：工作、重要",
-    "applyFiltersButton": "套用篩選",
-    "resetFiltersButton": "重設篩選",
+    "confirmDeleteTransaction": "您確定要刪除此交易嗎？",
+    "filters": {
+      "title": "篩選器",
+      "show": "顯示篩選器",
+      "hide": "隱藏篩選器",
+      "keywordLabel": "關鍵字搜尋",
+      "keywordPlaceholder": "描述或類別...",
+      "typeLabel": "交易類型",
+      "typeAll": "所有類型",
+      "typeIncome": "收入",
+      "typeExpense": "支出",
+      "startDateLabel": "開始日期",
+      "endDateLabel": "結束日期",
+      "minAmountLabel": "最小金額",
+      "maxAmountLabel": "最大金額",
+      "tagLabel": "標籤搜尋",
+      "tagPlaceholder": "例如：工作、重要",
+      "applyButton": "套用篩選",
+      "resetButton": "重設篩選"
+    },
     "budgets": {
       "title": "每月預算",
       "addBudgetButton": "新增預算",
@@ -104,9 +106,13 @@
       "deleteButtonAriaLabel": "刪除 {category} 預算",
       "addBudgetModalTitle": "新增預算",
       "editBudgetModalTitle": "編輯預算",
-      "previousMonth": "上個月",
-      "nextMonth": "下個月"
-    }
+      "confirmDeleteBudget": "您確定要刪除此預算嗎？",
+      "prevMonth": "上個月",
+      "nextMonth": "下個月",
+      "previousMonthAriaLabel": "前往上個月預算",
+      "nextMonthAriaLabel": "前往下個月預算"
+    },
+    "addTransactionModalTitle": "新增交易"
   },
   "transactionForm": {
     "modalTitle": "新增交易",

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import Dashboard from './components/core/Dashboard';
 import Navbar from './components/core/Navbar';
@@ -17,11 +18,11 @@ const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-lightbg dark:bg-darkbg text-lighttext dark:text-darktext transition-colors duration-300">
       <Navbar onNavigate={handleNavigate} currentPage={currentPage} />
-      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8"> {/* Added container for consistent padding across pages */}
+      <main className="flex-grow container mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8"> {/* Adjusted padding */}
         {currentPage === 'dashboard' && <Dashboard />}
         {currentPage === 'settings' && <SettingsPage />}
       </main>
-      <footer className="bg-slate-800 dark:bg-gray-900 text-slate-300 dark:text-gray-400 text-center p-4 text-sm transition-colors duration-300">
+      <footer className="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-center p-4 text-sm transition-colors duration-300"> {/* Updated styles */}
         {t('footer', { year: new Date().getFullYear().toString() })}
       </footer>
     </div>
