@@ -1,0 +1,48 @@
+body { 
+  font-family: 'Inter', sans-serif; 
+  /* Default light mode styles */
+  @apply bg-lightbg text-lighttext;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.dark body {
+  /* Dark mode styles */
+  @apply bg-darkbg text-darktext;
+}
+/* Custom scrollbar for a cleaner look */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1; /* Light mode track */
+  border-radius: 10px;
+}
+.dark ::-webkit-scrollbar-track {
+  background: #2d3748; /* Dark mode track (gray-800) */
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* slate-300 */
+  border-radius: 10px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: #4a5568; /* Dark mode thumb (gray-600) */
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8; /* slate-500 */
+}
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #718096; /* Dark mode thumb hover (gray-500) */
+}
+/* Ensure root div takes full height */
+html, body, #root {
+  min-height: 100vh;
+}
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Apply Tailwind base, components, and utilities */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
