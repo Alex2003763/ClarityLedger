@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClarityCoin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class', // Enable class-based dark mode
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#4f46e5', // indigo-600
+              light: '#6366f1', // indigo-500
+              dark: '#3730a3', // indigo-800
+            },
+            secondary: '#0ea5e9', // sky-500
+            accent: '#10b981', // emerald-500
+            danger: '#ef4444', // red-500
+            lightbg: '#f3f4f6', // gray-100
+            darkbg: '#1f2937',  // gray-800
+            lighttext: '#1f2937', // gray-800 (used for text on light backgrounds)
+            darktext: '#f3f4f6',   // gray-100 (used for text on dark backgrounds)
+            
+            // Component-specific dark mode colors
+            darkSurface: '#374151', // gray-700 for cards/modals in dark mode
+            darkBorder: '#4b5563', // gray-600 for borders in dark mode
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { 
+      font-family: 'Inter', sans-serif; 
+      /* Default light mode styles */
+      background-color: theme('colors.lightbg');
+      color: theme('colors.lighttext');
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .dark body {
+      /* Dark mode styles */
+      background-color: theme('colors.darkbg');
+      color: theme('colors.darktext');
+    }
+    /* Custom scrollbar for a cleaner look */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1; /* Light mode track */
+      border-radius: 10px;
+    }
+    .dark ::-webkit-scrollbar-track {
+      background: #2d3748; /* Dark mode track (gray-800) */
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1; /* slate-300 */
+      border-radius: 10px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #4a5568; /* Dark mode thumb (gray-600) */
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8; /* slate-500 */
+    }
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: #718096; /* Dark mode thumb hover (gray-500) */
+    }
+    /* Ensure root div takes full height */
+    html, body, #root {
+      min-height: 100vh;
+    }
+    #root {
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "recharts": "https://esm.sh/recharts@^2.15.3"
+  }
+}
+</script>
+</head>
+<body class="antialiased">
+  <div id="root"></div>
+  <script type="module" src="./index.tsx"></script>
+</body>
+</html><link rel="stylesheet" href="index.css">
+<script src="index.tsx" type="module"></script>
