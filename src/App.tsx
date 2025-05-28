@@ -17,7 +17,7 @@ const AppContent: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col bg-lightbg dark:bg-darkbg text-lighttext dark:text-darktext transition-colors duration-300">
       <Navbar onNavigate={handleNavigate} currentPage={currentPage} />
-      <main className="flex-grow container mx-auto"> {/* Added container for consistent padding across pages */}
+      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8"> {/* Added container for consistent padding across pages */}
         {currentPage === 'dashboard' && <Dashboard />}
         {currentPage === 'settings' && <SettingsPage />}
       </main>

@@ -10,7 +10,7 @@ import {
   addBudget as apiAddBudget,
   updateBudget as apiUpdateBudget,
   deleteBudget as apiDeleteBudget,
-  getAllBudgets // For checking if category is in use by budget (optional)
+  // getAllBudgets // Not used in this version, can be removed if not needed elsewhere
 } from '../../services/budgetService';
 import TransactionForm from '../transactions/TransactionForm';
 import TransactionList from '../transactions/TransactionList';
@@ -26,10 +26,10 @@ import Input from '../ui/Input';
 import { useAppContext } from '../../contexts/AppContext';
 import { DEFAULT_EXPENSE_CATEGORIES, LOCAL_STORAGE_CUSTOM_EXPENSE_CATEGORIES } from '../../constants';
 
-
+// Props interface for Dashboard (empty for now, but good practice)
 interface DashboardProps {}
 
-// Icons
+// Icons (already provided in the prompt, ensure they are used or removed if not)
 const PlusIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-6 h-6"}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -68,7 +68,7 @@ interface FilterCriteria {
   endDate: string;
   minAmount: string;
   maxAmount: string;
-  tag: string; // New filter for tags
+  tag: string;
 }
 
 const initialFilterCriteria: FilterCriteria = {
@@ -82,17 +82,16 @@ const initialFilterCriteria: FilterCriteria = {
 };
 
 const Dashboard: React.FC<DashboardProps> = () => {
-  const { t, language } = useAppContext(); // Assuming language is needed for month name
+  const { t, language, formatCurrency } = useAppContext();
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
 
   const [filterInputs, setFilterInputs] = useState<FilterCriteria>(initialFilterCriteria);
   const [activeFilters, setActiveFilters] = useState<FilterCriteria>(initialFilterCriteria);
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
 
-  // Budget states
-  const [currentMonthYear, setCurrentMonthYear] = useState<string>(new Date().toISOString().slice(0, 7)); // YYYY-MM
+  const [currentMonthYear, setCurrentMonthYear] = useState<string>(new Date().toISOString().slice(0, 7));
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
@@ -111,15 +110,14 @@ const Dashboard: React.FC<DashboardProps> = () => {
     setAllExpenseCategoriesForBudget(translated);
   }, [t]);
 
-
   const fetchAllData = useCallback(() => {
-    setIsLoading(true);
+    setIsLoadingTransactions(true);
     setIsLoadingBudgets(true);
 
     const userTransactions = getTransactions();
     userTransactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setAllTransactions(userTransactions);
-    setIsLoading(false);
+    setIsLoadingTransactions(false);
 
     const monthBudgets = getBudgetsForMonth(currentMonthYear);
     setBudgets(monthBudgets);
@@ -130,353 +128,242 @@ const Dashboard: React.FC<DashboardProps> = () => {
     fetchAllData();
   }, [fetchAllData]);
 
-  const handleAddTransaction = useCallback((newTransactionData: Omit<Transaction, 'id' | 'userId'>) => {
-    apiAddTransaction(newTransactionData);
-    fetchAllData(); 
-    setIsModalOpen(false);
+  const handleAddTransaction = useCallback((transaction: Omit<Transaction, 'id' | 'userId'>) => {
+    apiAddTransaction(transaction);
+    fetchAllData();
+    setIsTransactionModalOpen(false);
   }, [fetchAllData]);
 
-  const handleDeleteTransaction = useCallback((transactionId: string) => {
-    apiDeleteTransaction(transactionId);
-    fetchAllData(); 
-  }, [fetchAllData]);
-
-  const handleFilterInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleDeleteTransaction = useCallback((id: string) => {
+    if (window.confirm(t('dashboard.confirmDeleteTransaction'))) {
+      apiDeleteTransaction(id);
+      fetchAllData();
+    }
+  }, [fetchAllData, t]);
+  
+  const handleFilterInputChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilterInputs(prev => ({ ...prev, [name]: value }));
-  };
+  }, []);
 
-  const handleApplyFilters = () => {
+  const handleApplyFilters = useCallback(() => {
     setActiveFilters(filterInputs);
-  };
+    setIsFiltersVisible(false); // Optionally close filter panel after applying
+  }, [filterInputs]);
 
-  const handleResetFilters = () => {
+  const handleResetFilters = useCallback(() => {
     setFilterInputs(initialFilterCriteria);
     setActiveFilters(initialFilterCriteria);
-  };
+  }, []);
+
+  const toggleFiltersVisibility = useCallback(() => {
+    setIsFiltersVisible(prev => !prev);
+  }, []);
 
   const filteredTransactions = useMemo(() => {
     return allTransactions.filter(transaction => {
-      // Keyword filter
-      if (activeFilters.keyword) {
-        const searchTerm = activeFilters.keyword.toLowerCase();
-        if (
-          !transaction.description.toLowerCase().includes(searchTerm) &&
-          !transaction.category.toLowerCase().includes(searchTerm)
-        ) {
-          return false;
-        }
-      }
-      // Type filter
-      if (activeFilters.type !== 'ALL' && transaction.type !== activeFilters.type) return false;
-      // Date range filter
-      if (activeFilters.startDate) {
-        const transactionDateOnly = new Date(transaction.date).setHours(0,0,0,0);
-        const startDateOnly = new Date(activeFilters.startDate).setHours(0,0,0,0);
-        if (transactionDateOnly < startDateOnly) return false;
-      }
-      if (activeFilters.endDate) {
-        const transactionDateOnly = new Date(transaction.date).setHours(0,0,0,0);
-        const endDateOnly = new Date(activeFilters.endDate).setHours(0,0,0,0);
-        if (transactionDateOnly > endDateOnly) return false;
-      }
-      // Amount range filter
-      if (activeFilters.minAmount && !isNaN(parseFloat(activeFilters.minAmount)) && transaction.amount < parseFloat(activeFilters.minAmount)) return false;
-      if (activeFilters.maxAmount && !isNaN(parseFloat(activeFilters.maxAmount)) && transaction.amount > parseFloat(activeFilters.maxAmount)) return false;
-      // Tag filter
-      if (activeFilters.tag) {
-        const searchTag = activeFilters.tag.toLowerCase();
-        if (!transaction.tags || !transaction.tags.some(tag => tag.toLowerCase().includes(searchTag))) {
-          return false;
-        }
-      }
-      return true;
+      const keywordLower = activeFilters.keyword.toLowerCase();
+      const matchesKeyword = activeFilters.keyword ? transaction.description.toLowerCase().includes(keywordLower) : true;
+      const matchesType = activeFilters.type === 'ALL' || transaction.type === activeFilters.type;
+      const dateObj = new Date(transaction.date + 'T00:00:00'); // Ensure date is parsed in local timezone consistently
+      const startDateObj = activeFilters.startDate ? new Date(activeFilters.startDate + 'T00:00:00') : null;
+      const endDateObj = activeFilters.endDate ? new Date(activeFilters.endDate + 'T23:59:59') : null;
+
+      const matchesDate = 
+        (!startDateObj || dateObj >= startDateObj) &&
+        (!endDateObj || dateObj <= endDateObj);
+      const matchesMinAmount = activeFilters.minAmount ? transaction.amount >= parseFloat(activeFilters.minAmount) : true;
+      const matchesMaxAmount = activeFilters.maxAmount ? transaction.amount <= parseFloat(activeFilters.maxAmount) : true;
+      const matchesTag = activeFilters.tag ? transaction.tags?.map(t => t.toLowerCase()).includes(activeFilters.tag.toLowerCase()) : true;
+
+      return matchesKeyword && matchesType && matchesDate && matchesMinAmount && matchesMaxAmount && matchesTag;
     });
   }, [allTransactions, activeFilters]);
-  
-  const isCurrentlyFiltered = JSON.stringify(activeFilters) !== JSON.stringify(initialFilterCriteria);
 
-  const { totalIncome, totalExpenses, balance } = useMemo(() => {
-    let income = 0;
-    let expenses = 0;
-    filteredTransactions.forEach(t => {
-      if (t.type === TransactionType.INCOME) income += t.amount;
-      else expenses += t.amount;
+  const isFiltered = useMemo(() => JSON.stringify(activeFilters) !== JSON.stringify(initialFilterCriteria) , [activeFilters]);
+
+  const { income, expenses, balance } = useMemo(() => {
+    let currentIncome = 0;
+    let currentExpenses = 0;
+    filteredTransactions.forEach(transaction => {
+      if (transaction.type === TransactionType.INCOME) {
+        currentIncome += transaction.amount;
+      } else {
+        currentExpenses += transaction.amount;
+      }
     });
-    return { totalIncome: income, totalExpenses: expenses, balance: income - expenses };
+    return { income: currentIncome, expenses: currentExpenses, balance: currentIncome - currentExpenses };
   }, [filteredTransactions]);
 
-  const expensePieChartData: PieChartData[] = useMemo(() => {
-    const expenseByCategory: { [key: string]: number } = {};
+  const expensePieChartData = useMemo((): PieChartData[] => {
+    const expenseCategoriesMap: { [key: string]: number } = {};
     filteredTransactions
       .filter(transaction => transaction.type === TransactionType.EXPENSE)
       .forEach(transaction => {
-        const categoryKey = `categories.${transaction.category.replace(/\s+/g, '').replace(/[^\w]/gi, '')}`; 
-        const translatedCategory = t(categoryKey) === categoryKey ? transaction.category : t(categoryKey); 
-        expenseByCategory[translatedCategory] = (expenseByCategory[translatedCategory] || 0) + transaction.amount;
+        const categoryKey = `categories.${transaction.category.replace(/\s+/g, '').replace(/[^\w]/gi, '')}`;
+        const translatedCategory = t(categoryKey) === categoryKey ? transaction.category : t(categoryKey);
+        expenseCategoriesMap[translatedCategory] = (expenseCategoriesMap[translatedCategory] || 0) + transaction.amount;
       });
-    return Object.entries(expenseByCategory).map(([name, value]) => ({ name, value }));
+    return Object.entries(expenseCategoriesMap)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a,b) => b.value - a.value);
   }, [filteredTransactions, t]);
-
-
-  // Budget handlers
-  const handleOpenBudgetModal = (budgetToEdit: Budget | null = null) => {
-    setEditingBudget(budgetToEdit);
-    setIsBudgetModalOpen(true);
+  
+  const handleMonthChange = (offset: number) => {
+    setCurrentMonthYear(prevMonthYear => {
+      const date = new Date(prevMonthYear + '-01'); // Use day 01 to avoid month-end issues
+      date.setMonth(date.getMonth() + offset);
+      return date.toISOString().slice(0, 7);
+    });
   };
 
-  const handleSaveBudget = (budgetData: Omit<Budget, 'id' | 'userId'>) => {
+  const handleAddOrUpdateBudget = useCallback((budgetData: Omit<Budget, 'id' | 'userId'>) => {
     if (editingBudget) {
       apiUpdateBudget({ ...editingBudget, ...budgetData });
     } else {
       apiAddBudget(budgetData);
     }
-    fetchAllData(); // Refetch budgets and potentially transactions if they affect budget display
+    fetchAllData(); // Refresh budgets and potentially transactions if relevant
     setIsBudgetModalOpen(false);
     setEditingBudget(null);
-  };
+  }, [editingBudget, fetchAllData]);
 
-  const handleDeleteBudget = (budgetId: string) => {
-    // Consider adding a confirmation modal here
-    apiDeleteBudget(budgetId);
-    fetchAllData(); // Refetch budgets
-  };
+  const handleDeleteBudget = useCallback((budgetId: string) => {
+    if (window.confirm(t('dashboard.budgets.confirmDeleteBudget'))) {
+      apiDeleteBudget(budgetId);
+      fetchAllData(); // Refresh budgets
+    }
+  }, [fetchAllData, t]);
 
-  const budgetsWithSpent = useMemo(() => {
+  const openBudgetModal = useCallback((budgetToEdit?: Budget) => {
+    setEditingBudget(budgetToEdit || null);
+    setIsBudgetModalOpen(true);
+  }, []);
+
+  const budgetsWithSpentAmount = useMemo(() => {
     return budgets.map(budget => {
-      const spentAmount = allTransactions
+      const spent = allTransactions // Use allTransactions for budget calculation, not filtered ones
         .filter(t => t.type === TransactionType.EXPENSE && t.category === budget.category && t.date.startsWith(budget.monthYear))
         .reduce((sum, t) => sum + t.amount, 0);
-      return { ...budget, spentAmount };
+      return { ...budget, spentAmount: spent };
     });
   }, [budgets, allTransactions]);
-  
-  const handleMonthChange = (offset: number) => {
-    setCurrentMonthYear(prevMonthYear => {
-      const date = new Date(prevMonthYear + '-01'); // Ensure it's a valid date for the 1st of the month
-      date.setMonth(date.getMonth() + offset);
-      return date.toISOString().slice(0, 7);
-    });
-  };
-  
-  const displayMonthYear = useMemo(() => {
+
+  const currentMonthDisplay = useMemo(() => {
     const date = new Date(currentMonthYear + '-01');
-    return date.toLocaleDateString(language, { month: 'long', year: 'numeric' });
+    return date.toLocaleDateString(language, { year: 'numeric', month: 'long' });
   }, [currentMonthYear, language]);
 
 
-  if (isLoading) {
+  if (isLoadingTransactions || isLoadingBudgets) {
     return (
-      <div className="p-4 sm:p-6 lg:p-8 text-center flex flex-col items-center justify-center min-h-[calc(100vh-15rem)]">
+      <div className="flex justify-center items-center min-h-[calc(100vh-10rem)]"> {/* Adjust min-height based on Navbar/Footer height */}
         <Spinner size="lg" />
-        <p className="mt-4 text-gray-500 dark:text-gray-400">{t('dashboard.loading')}</p>
       </div>
     );
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8">
-      <SummaryDisplay income={totalIncome} expenses={totalExpenses} balance={balance} />
+    <div className="space-y-6 sm:space-y-8"> {/* Main content spacing */}
+      <SummaryDisplay income={income} expenses={expenses} balance={balance} />
 
-      {/* Filters Section */}
-      <div className="my-6 p-4 bg-gray-50 dark:bg-darkSurface/50 rounded-lg shadow-md transition-colors duration-300">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-200 flex items-center">
-            <FilterIcon className="w-5 h-5 mr-2 text-primary dark:text-primary-light"/>
-            {t('dashboard.filtersTitle')}
-          </h3>
-          <Button 
-            onClick={() => setIsFiltersVisible(!isFiltersVisible)} 
-            variant="ghost" 
-            size="sm"
-            className="text-primary dark:text-primary-light"
-          >
-            {isFiltersVisible ? t('dashboard.hideFiltersButton') : t('dashboard.showFiltersButton')}
+      {/* Filter Section */}
+      <section aria-labelledby="filter-section-heading" className="bg-white dark:bg-darkSurface shadow-lg rounded-xl p-4 sm:p-6">
+        <div className="flex justify-between items-center mb-3">
+          <h2 id="filter-section-heading" className="text-xl font-semibold text-gray-800 dark:text-gray-100">{t('dashboard.filters.title')}</h2>
+          <Button onClick={toggleFiltersVisibility} variant="ghost" size="sm" leftIcon={<FilterIcon className="w-4 h-4"/>} aria-expanded={isFiltersVisible}>
+            {isFiltersVisible ? t('dashboard.filters.hide') : t('dashboard.filters.show')}
           </Button>
         </div>
         {isFiltersVisible && (
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Input
-                label={t('dashboard.filterKeywordLabel')}
-                id="filterKeyword"
-                name="keyword"
-                value={filterInputs.keyword}
-                onChange={handleFilterInputChange}
-                placeholder={t('dashboard.filterKeywordPlaceholder')}
-                containerClassName="mb-0"
-              />
-              <div>
-                <label htmlFor="filterType" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('dashboard.filterTypeLabel')}
-                </label>
-                <select
-                  id="filterType"
-                  name="type"
-                  value={filterInputs.type}
-                  onChange={handleFilterInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-darkBorder 
-                            rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary 
-                            sm:text-sm bg-white dark:bg-darkSurface text-lighttext dark:text-darktext"
-                >
-                  <option value="ALL">{t('dashboard.filterTypeAll')}</option>
-                  <option value={TransactionType.INCOME}>{t('dashboard.filterTypeIncome')}</option>
-                  <option value={TransactionType.EXPENSE}>{t('dashboard.filterTypeExpense')}</option>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4 border-t pt-4 mt-2 dark:border-darkBorder">
+            <Input label={t('dashboard.filters.keywordLabel')} name="keyword" value={filterInputs.keyword} onChange={handleFilterInputChange} placeholder={t('dashboard.filters.keywordPlaceholder')} />
+            <div>
+                <label htmlFor="filter-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('dashboard.filters.typeLabel')}</label>
+                <select id="filter-type" name="type" value={filterInputs.type} onChange={handleFilterInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-darkBorder rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-white dark:bg-darkSurface text-lighttext dark:text-darktext">
+                    <option value="ALL">{t('dashboard.filters.typeAll')}</option>
+                    <option value={TransactionType.INCOME}>{t('dashboard.filters.typeIncome')}</option>
+                    <option value={TransactionType.EXPENSE}>{t('dashboard.filters.typeExpense')}</option>
                 </select>
-              </div>
-               <Input
-                label={t('dashboard.filterTagLabel')}
-                id="filterTag"
-                name="tag"
-                value={filterInputs.tag}
-                onChange={handleFilterInputChange}
-                placeholder={t('dashboard.filterTagPlaceholder')}
-                containerClassName="mb-0"
-                leftIcon={<TagIconSolid className="w-4 h-4 text-gray-400 dark:text-gray-500" />}
-              />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Input
-                label={t('dashboard.filterStartDateLabel')}
-                id="filterStartDate"
-                name="startDate"
-                type="date"
-                value={filterInputs.startDate}
-                onChange={handleFilterInputChange}
-                containerClassName="mb-0"
-                className="dark:[color-scheme:dark]"
-              />
-              <Input
-                label={t('dashboard.filterEndDateLabel')}
-                id="filterEndDate"
-                name="endDate"
-                type="date"
-                value={filterInputs.endDate}
-                onChange={handleFilterInputChange}
-                containerClassName="mb-0"
-                className="dark:[color-scheme:dark]"
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                    label={t('dashboard.filterMinAmountLabel')}
-                    id="filterMinAmount"
-                    name="minAmount"
-                    type="number"
-                    value={filterInputs.minAmount}
-                    onChange={handleFilterInputChange}
-                    placeholder={t('dashboard.filterMinAmountPlaceholder')}
-                    containerClassName="mb-0"
-                    min="0"
-                    step="0.01"
-                />
-                <Input
-                    label={t('dashboard.filterMaxAmountLabel')}
-                    id="filterMaxAmount"
-                    name="maxAmount"
-                    type="number"
-                    value={filterInputs.maxAmount}
-                    onChange={handleFilterInputChange}
-                    placeholder={t('dashboard.filterMaxAmountPlaceholder')}
-                    containerClassName="mb-0"
-                    min="0"
-                    step="0.01"
-                />
-            </div>
-            <div className="flex justify-end space-x-3 pt-2">
-              <Button onClick={handleResetFilters} variant="ghost" size="sm" leftIcon={<ArrowPathIcon className="w-4 h-4"/>}>
-                {t('dashboard.resetFiltersButton')}
-              </Button>
-              <Button onClick={handleApplyFilters} variant="primary" size="sm">
-                {t('dashboard.applyFiltersButton')}
-              </Button>
+            <Input label={t('dashboard.filters.tagLabel')} name="tag" value={filterInputs.tag} onChange={handleFilterInputChange} placeholder={t('dashboard.filters.tagPlaceholder')} leftIcon={<TagIconSolid className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} />
+            <Input label={t('dashboard.filters.startDateLabel')} name="startDate" type="date" value={filterInputs.startDate} onChange={handleFilterInputChange} className="dark:[color-scheme:dark]" />
+            <Input label={t('dashboard.filters.endDateLabel')} name="endDate" type="date" value={filterInputs.endDate} onChange={handleFilterInputChange} className="dark:[color-scheme:dark]" />
+            <Input label={t('dashboard.filters.minAmountLabel')} name="minAmount" type="number" value={filterInputs.minAmount} onChange={handleFilterInputChange} placeholder="0.00"/>
+            <Input label={t('dashboard.filters.maxAmountLabel')} name="maxAmount" type="number" value={filterInputs.maxAmount} onChange={handleFilterInputChange} placeholder="1000.00"/>
+            <div className="sm:col-span-2 lg:col-span-3 flex justify-end space-x-3 mt-2">
+                <Button onClick={handleResetFilters} variant="ghost" size="sm" leftIcon={<ArrowPathIcon className="w-4 h-4"/>}>{t('dashboard.filters.resetButton')}</Button>
+                <Button onClick={handleApplyFilters} variant="primary" size="sm">{t('dashboard.filters.applyButton')}</Button>
             </div>
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Main Content Area (Transactions, Budgets, AI Tip, Pie Chart) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Left Column: Transactions */}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-darkSurface p-4 sm:p-6 rounded-lg shadow-lg transition-colors duration-300">
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-                    <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 dark:text-gray-200 mb-3 sm:mb-0">{t('dashboard.recentActivity')}</h2>
-                    <Button onClick={() => setIsModalOpen(true)} variant="primary" leftIcon={<PlusIcon className="w-5 h-5"/>}>
-                    {t('dashboard.addTransactionButton')}
-                    </Button>
-                </div>
-                <TransactionList 
-                    transactions={filteredTransactions} 
-                    onDelete={handleDeleteTransaction} 
-                    isFiltered={isCurrentlyFiltered}
-                    hasOriginalTransactions={allTransactions.length > 0}
-                />
+          <section aria-labelledby="transactions-heading" className="bg-white dark:bg-darkSurface shadow-lg rounded-xl p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+              <h2 id="transactions-heading" className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2 sm:mb-0">{t('dashboard.transactionsTitle')}</h2>
+              <Button onClick={() => setIsTransactionModalOpen(true)} leftIcon={<PlusIcon className="w-5 h-5" />}>
+                {t('dashboard.addTransactionButton')}
+              </Button>
             </div>
-
-            {/* Budgets Section */}
-            <div className="bg-white dark:bg-darkSurface p-4 sm:p-6 rounded-lg shadow-lg transition-colors duration-300">
-                <div className="flex flex-col sm:flex-row justify-between items-center mb-4">
-                    <div className="flex items-center mb-3 sm:mb-0">
-                        <BanknotesIcon className="w-7 h-7 text-primary dark:text-primary-light mr-2"/>
-                        <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 dark:text-gray-200">
-                          {t('dashboard.budgets.title')}
-                        </h2>
-                    </div>
-                    <Button onClick={() => handleOpenBudgetModal()} variant="primary" size="sm" leftIcon={<PlusIcon className="w-4 h-4"/>}>
-                        {t('dashboard.budgets.addBudgetButton')}
-                    </Button>
-                </div>
-                 <div className="flex items-center justify-center space-x-2 mb-4">
-                    <Button onClick={() => handleMonthChange(-1)} size="sm" variant="ghost" aria-label={t('dashboard.budgets.previousMonth')}>&lt;</Button>
-                    <span className="font-medium text-gray-700 dark:text-gray-200">{displayMonthYear}</span>
-                    <Button onClick={() => handleMonthChange(1)} size="sm" variant="ghost" aria-label={t('dashboard.budgets.nextMonth')}>&gt;</Button>
-                </div>
-                {isLoadingBudgets ? (
-                    <div className="flex justify-center items-center py-8"> <Spinner size="md" /> </div>
-                ) : (
-                    <BudgetList
-                        budgets={budgetsWithSpent}
-                        onEdit={handleOpenBudgetModal}
-                        onDelete={handleDeleteBudget}
-                    />
-                )}
-            </div>
+            <TransactionList 
+              transactions={filteredTransactions} 
+              onDelete={handleDeleteTransaction} 
+              isFiltered={isFiltered}
+              hasOriginalTransactions={allTransactions.length > 0}
+            />
+          </section>
+          
+          <section aria-labelledby="ai-tip-heading">
+            <AiFinancialTip balance={balance} recentTransactionsCount={filteredTransactions.length} />
+          </section>
         </div>
 
-        {/* Right Column: Pie Chart & AI Tip */}
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-darkSurface p-6 rounded-lg shadow-lg transition-colors duration-300">
-            <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-200 mb-4">{t('dashboard.expenseBreakdownTitle')}</h3>
-            {expensePieChartData.length > 0 ? (
-              <CategoryPieChart data={expensePieChartData} />
-            ) : (
-              <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-                { isCurrentlyFiltered ? t('transactionList.noFilteredTransactions') : t('dashboard.noExpensesForChart') }
-              </p>
-            )}
-          </div>
-          <AiFinancialTip balance={balance} recentTransactionsCount={filteredTransactions.length} />
+        <div className="lg:col-span-1 space-y-6">
+          <section aria-labelledby="expense-breakdown-heading" className="bg-white dark:bg-darkSurface shadow-lg rounded-xl p-4 sm:p-6">
+            <h2 id="expense-breakdown-heading" className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-4">{t('dashboard.expenseBreakdownTitle')}</h2>
+            <CategoryPieChart data={expensePieChartData} />
+          </section>
+
+          <section aria-labelledby="budgets-heading" className="bg-white dark:bg-darkSurface shadow-lg rounded-xl p-4 sm:p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1">
+                <h2 id="budgets-heading" className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2 sm:mb-0 flex items-center">
+                    <BanknotesIcon className="w-6 h-6 mr-2 text-primary dark:text-primary-light"/>
+                    {t('dashboard.budgets.title')}
+                </h2>
+                <Button onClick={() => openBudgetModal()} variant="secondary" size="sm" leftIcon={<PlusIcon className="w-4 h-4"/>}>
+                    {t('dashboard.budgets.addBudgetButton')}
+                </Button>
+            </div>
+            <div className="flex items-center justify-between mb-3 text-sm text-gray-600 dark:text-gray-300">
+                <Button onClick={() => handleMonthChange(-1)} variant="ghost" size="sm" aria-label={t('dashboard.budgets.previousMonthAriaLabel')}>&lt; {t('dashboard.budgets.prevMonth')}</Button>
+                <span className="font-medium">{currentMonthDisplay}</span>
+                <Button onClick={() => handleMonthChange(1)} variant="ghost" size="sm" aria-label={t('dashboard.budgets.nextMonthAriaLabel')}>{t('dashboard.budgets.nextMonth')} &gt;</Button>
+            </div>
+            {isLoadingBudgets ? <div className="flex justify-center py-4"><Spinner/></div> : <BudgetList budgets={budgetsWithSpentAmount} onEdit={openBudgetModal} onDelete={handleDeleteBudget} />}
+          </section>
         </div>
       </div>
 
-
-      <Modal title={t('transactionForm.modalTitle')} isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} size="lg">
+      <Modal isOpen={isTransactionModalOpen} onClose={() => setIsTransactionModalOpen(false)} title={t('dashboard.addTransactionModalTitle')}>
         <TransactionForm onSubmit={handleAddTransaction} />
       </Modal>
-      
+
       <Modal 
-        title={editingBudget ? t('dashboard.budgets.editBudgetModalTitle') : t('dashboard.budgets.addBudgetModalTitle')} 
         isOpen={isBudgetModalOpen} 
         onClose={() => { setIsBudgetModalOpen(false); setEditingBudget(null); }} 
-        size="md"
+        title={editingBudget ? t('dashboard.budgets.editBudgetModalTitle') : t('dashboard.budgets.addBudgetModalTitle')}
       >
-        <BudgetForm 
-          onSubmit={handleSaveBudget} 
-          initialData={editingBudget || undefined} 
-          existingBudgetsForMonth={budgets}
+        <BudgetForm
+          onSubmit={handleAddOrUpdateBudget}
+          initialData={editingBudget || undefined}
+          // Pass budgets for the specific month, excluding the one being edited
+          existingBudgetsForMonth={budgets.filter(b => b.monthYear === (editingBudget?.monthYear || currentMonthYear) && b.id !== editingBudget?.id )}
           availableCategories={allExpenseCategoriesForBudget}
-          currentMonthYear={currentMonthYear}
+          currentMonthYear={editingBudget?.monthYear || currentMonthYear}
         />
       </Modal>
     </div>
