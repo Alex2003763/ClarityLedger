@@ -3,7 +3,7 @@ import { Budget } from '../types';
 import { LOCAL_STORAGE_BUDGETS_KEY, DEFAULT_USER_ID } from '../constants';
 
 // Helper function to get all budgets for the current user from local storage
-const getAllUserBudgets = (): Budget[] => {
+const getAllUserBudgetsInternal = (): Budget[] => {
   const storedData = localStorage.getItem(LOCAL_STORAGE_BUDGETS_KEY);
   if (storedData) {
     try {
@@ -19,9 +19,11 @@ const getAllUserBudgets = (): Budget[] => {
 };
 
 // Helper function to save all budgets for the current user to local storage
-const saveUserBudgets = (budgets: Budget[]): void => {
+const saveUserBudgetsInternal = (budgets: Budget[]): void => {
   try {
-    localStorage.setItem(LOCAL_STORAGE_BUDGETS_KEY, JSON.stringify(budgets));
+    // Ensure all budgets being saved are for the default user.
+    const budgetsToSave = budgets.map(b => ({ ...b, userId: DEFAULT_USER_ID }));
+    localStorage.setItem(LOCAL_STORAGE_BUDGETS_KEY, JSON.stringify(budgetsToSave));
   } catch (e) {
     console.error("Error saving budgets to local storage:", e);
   }
@@ -33,7 +35,7 @@ const saveUserBudgets = (budgets: Budget[]): void => {
  * @returns An array of budgets for that month.
  */
 export const getBudgetsForMonth = (monthYear: string): Budget[] => {
-  const allBudgets = getAllUserBudgets();
+  const allBudgets = getAllUserBudgetsInternal();
   return allBudgets.filter(budget => budget.monthYear === monthYear);
 };
 
@@ -43,14 +45,14 @@ export const getBudgetsForMonth = (monthYear: string): Budget[] => {
  * @returns The newly added budget.
  */
 export const addBudget = (budgetData: Omit<Budget, 'id' | 'userId'>): Budget => {
-  const allBudgets = getAllUserBudgets();
+  const allBudgets = getAllUserBudgetsInternal();
   const newBudget: Budget = {
     ...budgetData,
     id: `budget_${new Date().toISOString()}_${Math.random().toString(36).substring(2, 9)}`,
     userId: DEFAULT_USER_ID,
   };
   allBudgets.push(newBudget);
-  saveUserBudgets(allBudgets);
+  saveUserBudgetsInternal(allBudgets);
   return newBudget;
 };
 
@@ -60,11 +62,11 @@ export const addBudget = (budgetData: Omit<Budget, 'id' | 'userId'>): Budget => 
  * @returns The updated budget or null if not found.
  */
 export const updateBudget = (updatedBudget: Budget): Budget | null => {
-  let allBudgets = getAllUserBudgets();
+  let allBudgets = getAllUserBudgetsInternal();
   const index = allBudgets.findIndex(budget => budget.id === updatedBudget.id && budget.userId === DEFAULT_USER_ID);
   if (index !== -1) {
     allBudgets[index] = updatedBudget;
-    saveUserBudgets(allBudgets);
+    saveUserBudgetsInternal(allBudgets);
     return updatedBudget;
   }
   console.warn(`Budget with id ${updatedBudget.id} not found for update.`);
@@ -76,11 +78,11 @@ export const updateBudget = (updatedBudget: Budget): Budget | null => {
  * @param budgetId The ID of the budget to delete.
  */
 export const deleteBudget = (budgetId: string): void => {
-  let allBudgets = getAllUserBudgets();
+  let allBudgets = getAllUserBudgetsInternal();
   const initialLength = allBudgets.length;
   const filteredBudgets = allBudgets.filter(budget => !(budget.id === budgetId && budget.userId === DEFAULT_USER_ID));
   if (filteredBudgets.length < initialLength) {
-    saveUserBudgets(filteredBudgets);
+    saveUserBudgetsInternal(filteredBudgets);
   } else {
     console.warn(`Budget with id ${budgetId} not found for deletion.`);
   }
@@ -92,5 +94,13 @@ export const deleteBudget = (budgetId: string): void => {
  * @returns An array of all budgets.
  */
 export const getAllBudgets = (): Budget[] => {
-  return getAllUserBudgets();
+  return getAllUserBudgetsInternal();
+};
+
+/**
+ * Saves all budgets for the default user, overwriting existing ones.
+ * @param budgetsToSave The array of budgets to save.
+ */
+export const saveAllUserBudgets = (budgetsToSave: Budget[]): void => {
+  saveUserBudgetsInternal(budgetsToSave);
 };

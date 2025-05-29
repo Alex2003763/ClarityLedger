@@ -41,14 +41,28 @@ const BudgetItem: React.FC<BudgetItemProps> = ({ budget, onEdit, onDelete }) => 
   return (
     <li className="py-3 px-1">
       <div className="flex justify-between items-center mb-1">
-        <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{translatedCategory}</span>
-        <div className="space-x-2">
-          <Button onClick={() => onEdit(budget)} variant="ghost" size="sm" className="p-1 text-gray-500 hover:text-primary dark:hover:text-primary-light" aria-label={t('dashboard.budgets.editButtonAriaLabel', { category: translatedCategory })}>
-            <EditIcon />
-          </Button>
-          <Button onClick={() => onDelete(budget.id)} variant="ghost" size="sm" className="p-1 text-gray-500 hover:text-danger dark:hover:text-red-400" aria-label={t('dashboard.budgets.deleteButtonAriaLabel', { category: translatedCategory })}>
-            <TrashIconSmall />
-          </Button>
+        <div className="flex items-center space-x-2">
+          <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{translatedCategory}</span>
+          <div className="flex items-center space-x-1">
+            <Button 
+              onClick={() => onEdit(budget)} 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-500 dark:text-gray-400 hover:text-primary dark:hover:text-primary-light" 
+              aria-label={t('dashboard.budgets.editButtonAriaLabel', { category: translatedCategory })}
+            >
+              <EditIcon />
+            </Button>
+            <Button 
+              onClick={() => onDelete(budget.id)} 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-500 dark:text-gray-400 hover:text-danger dark:hover:text-red-400" 
+              aria-label={t('dashboard.budgets.deleteButtonAriaLabel', { category: translatedCategory })}
+            >
+              <TrashIconSmall />
+            </Button>
+          </div>
         </div>
       </div>
       <div className="text-xs text-gray-500 dark:text-gray-400 mb-1.5">

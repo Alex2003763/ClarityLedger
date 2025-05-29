@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect, useCallback, useMemo, ChangeEvent } from 'react';
 import { Transaction, TransactionType, PieChartData, Budget } from '../../types';
 import { 
@@ -57,6 +59,18 @@ const TagIconSolid: React.FC<{ className?: string }> = ({ className }) => (
 const BanknotesIcon: React.FC<{ className?: string }> = ({ className }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-6 h-6"}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V6.375m0 0V18m0 0h16.5m0 0c.621 0 1.125-.504 1.125-1.125v-9.75c0-.621-.504-1.125-1.125-1.125h-16.5" />
+  </svg>
+);
+
+const ChevronLeftIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className || "w-4 h-4"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+  </svg>
+);
+
+const ChevronRightIcon: React.FC<{ className?: string }> = ({ className }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className={className || "w-4 h-4"}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
   </svg>
 );
 
@@ -267,41 +281,40 @@ const Dashboard: React.FC<DashboardProps> = () => {
     <div className="space-y-6 sm:space-y-8"> {/* Main content spacing */}
       <SummaryDisplay income={income} expenses={expenses} balance={balance} />
 
-      {/* Filter Section */}
-      <section aria-labelledby="filter-section-heading" className="bg-white dark:bg-darkSurface shadow-lg rounded-xl p-4 sm:p-6">
-        <div className="flex justify-between items-center mb-3">
-          <h2 id="filter-section-heading" className="text-xl font-semibold text-gray-800 dark:text-gray-100">{t('dashboard.filters.title')}</h2>
-          <Button onClick={toggleFiltersVisibility} variant="ghost" size="sm" leftIcon={<FilterIcon className="w-4 h-4"/>} aria-expanded={isFiltersVisible}>
-            {isFiltersVisible ? t('dashboard.filters.hide') : t('dashboard.filters.show')}
-          </Button>
-        </div>
-        {isFiltersVisible && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4 border-t pt-4 mt-2 dark:border-darkBorder">
-            <Input label={t('dashboard.filters.keywordLabel')} name="keyword" value={filterInputs.keyword} onChange={handleFilterInputChange} placeholder={t('dashboard.filters.keywordPlaceholder')} />
-            <div>
-                <label htmlFor="filter-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('dashboard.filters.typeLabel')}</label>
-                <select id="filter-type" name="type" value={filterInputs.type} onChange={handleFilterInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-darkBorder rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-white dark:bg-darkSurface text-lighttext dark:text-darktext">
-                    <option value="ALL">{t('dashboard.filters.typeAll')}</option>
-                    <option value={TransactionType.INCOME}>{t('dashboard.filters.typeIncome')}</option>
-                    <option value={TransactionType.EXPENSE}>{t('dashboard.filters.typeExpense')}</option>
-                </select>
-            </div>
-            <Input label={t('dashboard.filters.tagLabel')} name="tag" value={filterInputs.tag} onChange={handleFilterInputChange} placeholder={t('dashboard.filters.tagPlaceholder')} leftIcon={<TagIconSolid className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} />
-            <Input label={t('dashboard.filters.startDateLabel')} name="startDate" type="date" value={filterInputs.startDate} onChange={handleFilterInputChange} className="dark:[color-scheme:dark]" />
-            <Input label={t('dashboard.filters.endDateLabel')} name="endDate" type="date" value={filterInputs.endDate} onChange={handleFilterInputChange} className="dark:[color-scheme:dark]" />
-            <Input label={t('dashboard.filters.minAmountLabel')} name="minAmount" type="number" value={filterInputs.minAmount} onChange={handleFilterInputChange} placeholder="0.00"/>
-            <Input label={t('dashboard.filters.maxAmountLabel')} name="maxAmount" type="number" value={filterInputs.maxAmount} onChange={handleFilterInputChange} placeholder="1000.00"/>
-            <div className="sm:col-span-2 lg:col-span-3 flex justify-end space-x-3 mt-2">
-                <Button onClick={handleResetFilters} variant="ghost" size="sm" leftIcon={<ArrowPathIcon className="w-4 h-4"/>}>{t('dashboard.filters.resetButton')}</Button>
-                <Button onClick={handleApplyFilters} variant="primary" size="sm">{t('dashboard.filters.applyButton')}</Button>
-            </div>
-          </div>
-        )}
-      </section>
-
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {/* Filter Section */}
+          <section aria-labelledby="filter-section-heading" className="bg-white dark:bg-darkSurface shadow-lg rounded-xl p-4 sm:p-6">
+            <div className="flex justify-between items-center mb-3">
+              <h2 id="filter-section-heading" className="text-xl font-semibold text-gray-800 dark:text-gray-100">{t('dashboard.filters.title')}</h2>
+              <Button onClick={toggleFiltersVisibility} variant="ghost" size="sm" leftIcon={<FilterIcon className="w-4 h-4"/>} aria-expanded={isFiltersVisible}>
+                {isFiltersVisible ? t('dashboard.filters.hide') : t('dashboard.filters.show')}
+              </Button>
+            </div>
+            {isFiltersVisible && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4 border-t pt-4 mt-2 dark:border-darkBorder">
+                <Input label={t('dashboard.filters.keywordLabel')} name="keyword" value={filterInputs.keyword} onChange={handleFilterInputChange} placeholder={t('dashboard.filters.keywordPlaceholder')} />
+                <div>
+                    <label htmlFor="filter-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('dashboard.filters.typeLabel')}</label>
+                    <select id="filter-type" name="type" value={filterInputs.type} onChange={handleFilterInputChange} className="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-darkBorder rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-white dark:bg-darkSurface text-lighttext dark:text-darktext">
+                        <option value="ALL">{t('dashboard.filters.typeAll')}</option>
+                        <option value={TransactionType.INCOME}>{t('dashboard.filters.typeIncome')}</option>
+                        <option value={TransactionType.EXPENSE}>{t('dashboard.filters.typeExpense')}</option>
+                    </select>
+                </div>
+                <Input label={t('dashboard.filters.tagLabel')} name="tag" value={filterInputs.tag} onChange={handleFilterInputChange} placeholder={t('dashboard.filters.tagPlaceholder')} leftIcon={<TagIconSolid className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} />
+                <Input label={t('dashboard.filters.startDateLabel')} name="startDate" type="date" value={filterInputs.startDate} onChange={handleFilterInputChange} className="dark:[color-scheme:dark]" />
+                <Input label={t('dashboard.filters.endDateLabel')} name="endDate" type="date" value={filterInputs.endDate} onChange={handleFilterInputChange} className="dark:[color-scheme:dark]" />
+                <Input label={t('dashboard.filters.minAmountLabel')} name="minAmount" type="number" value={filterInputs.minAmount} onChange={handleFilterInputChange} placeholder="0.00"/>
+                <Input label={t('dashboard.filters.maxAmountLabel')} name="maxAmount" type="number" value={filterInputs.maxAmount} onChange={handleFilterInputChange} placeholder="1000.00"/>
+                <div className="sm:col-span-2 lg:col-span-3 flex justify-end space-x-3 mt-2">
+                    <Button onClick={handleResetFilters} variant="ghost" size="sm" leftIcon={<ArrowPathIcon className="w-4 h-4"/>}>{t('dashboard.filters.resetButton')}</Button>
+                    <Button onClick={handleApplyFilters} variant="primary" size="sm">{t('dashboard.filters.applyButton')}</Button>
+                </div>
+              </div>
+            )}
+          </section>
+
           <section aria-labelledby="transactions-heading" className="bg-white dark:bg-darkSurface shadow-lg rounded-xl p-4 sm:p-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
               <h2 id="transactions-heading" className="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-2 sm:mb-0">{t('dashboard.transactionsTitle')}</h2>
@@ -338,10 +351,28 @@ const Dashboard: React.FC<DashboardProps> = () => {
                     {t('dashboard.budgets.addBudgetButton')}
                 </Button>
             </div>
-            <div className="flex items-center justify-between mb-3 text-sm text-gray-600 dark:text-gray-300">
-                <Button onClick={() => handleMonthChange(-1)} variant="ghost" size="sm" aria-label={t('dashboard.budgets.previousMonthAriaLabel')}>&lt; {t('dashboard.budgets.prevMonth')}</Button>
-                <span className="font-medium">{currentMonthDisplay}</span>
-                <Button onClick={() => handleMonthChange(1)} variant="ghost" size="sm" aria-label={t('dashboard.budgets.nextMonthAriaLabel')}>{t('dashboard.budgets.nextMonth')} &gt;</Button>
+            <div className="flex items-center justify-between mb-3 text-sm">
+                <Button 
+                  onClick={() => handleMonthChange(-1)} 
+                  variant="ghost" 
+                  size="sm" 
+                  aria-label={t('dashboard.budgets.previousMonthAriaLabel')}
+                  leftIcon={<ChevronLeftIcon />}
+                  className="text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-primary dark:hover:text-primary-light border border-slate-300 dark:border-slate-600"
+                >
+                  {t('dashboard.budgets.prevMonth')}
+                </Button>
+                <span className="font-medium text-gray-700 dark:text-gray-200">{currentMonthDisplay}</span>
+                <Button 
+                  onClick={() => handleMonthChange(1)} 
+                  variant="ghost" 
+                  size="sm" 
+                  aria-label={t('dashboard.budgets.nextMonthAriaLabel')}
+                  rightIcon={<ChevronRightIcon />}
+                  className="text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-primary dark:hover:text-primary-light border border-slate-300 dark:border-slate-600"
+                >
+                  {t('dashboard.budgets.nextMonth')}
+                </Button>
             </div>
             {isLoadingBudgets ? <div className="flex justify-center py-4"><Spinner/></div> : <BudgetList budgets={budgetsWithSpentAmount} onEdit={openBudgetModal} onDelete={handleDeleteBudget} />}
           </section>
