@@ -31,7 +31,7 @@ const Button: React.FC<ButtonProps> = ({
   };
 
   const sizeStyles = {
-    sm: 'px-3 py-1.5 text-xs sm:text-sm', // Adjusted for potentially smaller buttons
+    sm: 'px-2.5 py-1 text-xs', // Adjusted for a more compact 'sm' button
     md: 'px-5 py-2.5 text-sm sm:text-base',
     lg: 'px-7 py-3 text-base sm:text-lg',
   };
