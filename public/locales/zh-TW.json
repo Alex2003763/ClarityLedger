@@ -5,7 +5,8 @@
   "navbar": {
     "dashboard": "儀表板",
     "settings": "設定",
-    "transactions": "交易紀錄"
+    "transactions": "交易紀錄",
+    "reports": "報告"
   },
   "sidebar": {
     "helpCenter": "幫助中心"
@@ -14,6 +15,22 @@
     "welcomeMessage": "管理您的財務",
     "openSidebar": "開啟側邊欄",
     "closeSidebar": "關閉側邊欄"
+  },
+  "reportsPage": {
+    "spendingByCategoryChart": {
+      "title": "按類別劃分之支出趨勢",
+      "noData": "選定期間內無支出資料可顯示此圖表。"
+    },
+    "filters": {
+      "title": "報告篩選器",
+      "startDateLabel": "開始日期",
+      "endDateLabel": "結束日期",
+      "applyButton": "套用篩選"
+    },
+    "topExpenseCategoriesChart": {
+      "title": "主要支出類別",
+      "noData": "選定期間內無支出資料可顯示此圖表。"
+    }
   },
   "settingsPage": {
     "title": "設定",

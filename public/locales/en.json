@@ -5,7 +5,8 @@
   "navbar": {
     "dashboard": "Dashboard",
     "settings": "Settings",
-    "transactions": "Transactions"
+    "transactions": "Transactions",
+    "reports": "Reports"
   },
   "sidebar": {
     "helpCenter": "Help Center"
@@ -14,6 +15,22 @@
     "welcomeMessage": "Manage Your Finances",
     "openSidebar": "Open sidebar",
     "closeSidebar": "Close sidebar"
+  },
+  "reportsPage": {
+    "spendingByCategoryChart": {
+      "title": "Spending by Category Over Time",
+      "noData": "No expense data available for the selected period to display this chart."
+    },
+    "filters": {
+      "title": "Report Filters",
+      "startDateLabel": "Start Date",
+      "endDateLabel": "End Date",
+      "applyButton": "Apply Filters"
+    },
+    "topExpenseCategoriesChart": {
+      "title": "Top Expense Categories",
+      "noData": "No expense data available for the selected period to display this chart."
+    }
   },
   "settingsPage": {
     "title": "Settings",

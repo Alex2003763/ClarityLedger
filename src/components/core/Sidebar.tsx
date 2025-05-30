@@ -1,9 +1,10 @@
 
+
 import React from 'react';
 import { Logo } from '../ui/Logo'; 
 import { useAppContext } from '../../contexts/AppContext';
 
-type PageType = 'dashboard' | 'settings' | 'help' | 'transactions';
+type PageType = 'dashboard' | 'settings' | 'help' | 'transactions' | 'reports';
 
 interface SidebarProps {
   onNavigate: (page: PageType) => void;
@@ -55,6 +56,13 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPage, isOpen }) =>
           iconClass="fas fa-exchange-alt" 
           label={t('navbar.transactions')}
           isActive={currentPage === 'transactions'}
+          isSidebarOpen={isOpen}
+        />
+        <NavLink
+          onClick={() => onNavigate('reports')}
+          iconClass="fas fa-chart-pie" // Example icon for reports
+          label={t('navbar.reports')}
+          isActive={currentPage === 'reports'}
           isSidebarOpen={isOpen}
         />
         <NavLink

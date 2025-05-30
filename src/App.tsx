@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect } from 'react';
 import Dashboard from './components/core/Dashboard';
 import SettingsPage from './components/core/SettingsPage';
@@ -6,9 +7,10 @@ import Sidebar from './components/core/Sidebar'; // New Sidebar
 import TopBar from './components/core/TopBar';   // New TopBar
 import HelpCenterPage from './components/core/HelpCenterPage'; // New Help Center Page
 import TransactionsPage from './components/core/TransactionsPage'; // New Transactions Page
+import ReportsPage from './components/core/ReportsPage'; // New Reports Page
 import { AppProvider, useAppContext } from './contexts/AppContext';
 
-type Page = 'dashboard' | 'settings' | 'help' | 'transactions';
+type Page = 'dashboard' | 'settings' | 'help' | 'transactions' | 'reports';
 
 const AppContent: React.FC = () => {
   const { t } = useAppContext();
@@ -46,6 +48,7 @@ const AppContent: React.FC = () => {
   if (currentPage === 'settings') pageTitle = t('navbar.settings');
   if (currentPage === 'help') pageTitle = t('helpCenterPage.title');
   if (currentPage === 'transactions') pageTitle = t('navbar.transactions');
+  if (currentPage === 'reports') pageTitle = t('navbar.reports');
 
 
   return (
@@ -59,6 +62,7 @@ const AppContent: React.FC = () => {
           {currentPage === 'settings' && <SettingsPage />}
           {currentPage === 'help' && <HelpCenterPage />}
           {currentPage === 'transactions' && <TransactionsPage />}
+          {currentPage === 'reports' && <ReportsPage />}
         </main>
         <footer className="bg-white dark:bg-darkContentBg text-grayText text-center p-4 text-sm border-t border-gray-200 dark:border-darkBorder transition-colors duration-300">
            {t('footer', { year: new Date().getFullYear().toString() })}
