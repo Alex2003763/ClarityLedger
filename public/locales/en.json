@@ -4,7 +4,8 @@
   "footer": "© {year} ClarityCoin. Manage your finances with clarity.",
   "navbar": {
     "dashboard": "Dashboard",
-    "settings": "Settings"
+    "settings": "Settings",
+    "transactions": "Transactions"
   },
   "sidebar": {
     "helpCenter": "Help Center"
@@ -152,7 +153,11 @@
       "previousMonthAriaLabel": "Go to previous month for budgets",
       "nextMonthAriaLabel": "Go to next month for budgets"
     },
-    "addTransactionModalTitle": "Add New Transaction"
+    "addTransactionModalTitle": "Add New Transaction",
+    "charts": {
+        "incomeExpenseTrendTitle": "Income vs. Expense Trend (Last 6 Months)",
+        "noTrendData": "Not enough data available to display trend chart."
+    }
   },
   "transactionForm": {
     "modalTitle": "Add New Transaction",

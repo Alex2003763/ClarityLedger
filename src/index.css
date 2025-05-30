@@ -42,7 +42,7 @@ html, body, #root {
 
 /* General Card Styling (can be applied with a class or via @apply in components) */
 .fintrack-card {
-  @apply bg-contentBg dark:bg-darkContentBg rounded-2xl p-6 shadow-main;
+  @apply bg-contentBg dark:bg-darkContentBg rounded-2xl p-6 shadow-main transition-shadow duration-300;
   /* FinTrack cards often have a border-bottom, but can be optional or specific */
 }
 
@@ -58,7 +58,9 @@ select, input[type="text"], input[type="password"], input[type="number"], input[
     @apply w-full px-4 py-2.5 border border-gray-300 dark:border-darkBorder rounded-lg shadow-sm 
            focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
            bg-white dark:bg-darkSurface text-lighttext dark:text-darktext 
-           placeholder-grayText transition-colors duration-200;
+           placeholder-grayText 
+           hover:border-gray-400 dark:hover:border-gray-500
+           transition-all duration-200 ease-in-out;
     font-size: 0.95rem;
 }
 input[type="date"]::-webkit-calendar-picker-indicator {

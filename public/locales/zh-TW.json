@@ -4,7 +4,8 @@
   "footer": "© {year} ClarityCoin。清晰管理您的財務。",
   "navbar": {
     "dashboard": "儀表板",
-    "settings": "設定"
+    "settings": "設定",
+    "transactions": "交易紀錄"
   },
   "sidebar": {
     "helpCenter": "幫助中心"
@@ -152,7 +153,11 @@
       "previousMonthAriaLabel": "前往上個月預算",
       "nextMonthAriaLabel": "前往下個月預算"
     },
-    "addTransactionModalTitle": "新增交易"
+    "addTransactionModalTitle": "新增交易",
+    "charts": {
+        "incomeExpenseTrendTitle": "收支趨勢圖 (近6個月)",
+        "noTrendData": "目前尚無足夠資料可顯示趨勢圖。"
+    }
   },
   "transactionForm": {
     "modalTitle": "新增交易",

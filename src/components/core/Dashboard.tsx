@@ -1,10 +1,8 @@
 
-import React, { useState, useEffect, useCallback, useMemo, ChangeEvent } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Transaction, TransactionType, PieChartData, Budget } from '../../types';
 import { 
-  getTransactions, 
-  addTransaction as apiAddTransaction, 
-  deleteTransaction as apiDeleteTransaction 
+  getTransactions
 } from '../../services/transactionService';
 import {
   getBudgetsForMonth,
@@ -12,35 +10,24 @@ import {
   updateBudget as apiUpdateBudget,
   deleteBudget as apiDeleteBudget,
 } from '../../services/budgetService';
-import TransactionForm from '../transactions/TransactionForm';
-import TransactionList from '../transactions/TransactionList';
+// TransactionForm is no longer used here
 import SummaryDisplay from '../visualizations/SummaryDisplay';
 import CategoryPieChart from '../visualizations/CategoryPieChart';
+import IncomeExpenseTrendChart from '../visualizations/IncomeExpenseTrendChart'; // New Chart
 import AiFinancialTip from '../ai/AiFinancialTip';
 import BudgetList from '../budgets/BudgetList';
 import BudgetForm from '../budgets/BudgetForm';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import Spinner from '../ui/Spinner';
-import Input from '../ui/Input';
+// Input is still used by budget modal
+import Input from '../ui/Input'; 
 import { useAppContext } from '../../contexts/AppContext';
 import { DEFAULT_EXPENSE_CATEGORIES, LOCAL_STORAGE_CUSTOM_EXPENSE_CATEGORIES } from '../../constants';
 
 // Icons
 const PlusIcon: React.FC<{ className?: string }> = ({ className }) => (
   <i className={`fas fa-plus ${className || "w-4 h-4"}`}></i>
-);
-
-const FilterIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <i className={`fas fa-filter ${className || "w-4 h-4"}`}></i>
-);
-
-const ArrowPathIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <i className={`fas fa-sync-alt ${className || "w-4 h-4"}`}></i>
-);
-
-const TagIconSolid: React.FC<{ className?: string }> = ({ className }) => (
-  <i className={`fas fa-tag ${className || "w-4 h-4"}`}></i>
 );
 
 const BanknotesIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -55,36 +42,17 @@ const ChevronRightIcon: React.FC<{ className?: string }> = ({ className }) => (
   <i className={`fas fa-chevron-right ${className || "w-3 h-3"}`}></i>
 );
 
-
-interface FilterCriteria {
-  keyword: string;
-  type: 'ALL' | TransactionType;
-  startDate: string;
-  endDate: string;
-  minAmount: string;
-  maxAmount: string;
-  tag: string;
+interface MonthlyTrendData {
+  month: string;
+  income: number;
+  expenses: number;
 }
-
-const initialFilterCriteria: FilterCriteria = {
-  keyword: '',
-  type: 'ALL',
-  startDate: '',
-  endDate: '',
-  minAmount: '',
-  maxAmount: '',
-  tag: '',
-};
 
 const Dashboard: React.FC = () => {
   const { t, language } = useAppContext();
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
-  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+  // Removed isTransactionModalOpen state
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
-
-  const [filterInputs, setFilterInputs] = useState<FilterCriteria>(initialFilterCriteria);
-  const [activeFilters, setActiveFilters] = useState<FilterCriteria>(initialFilterCriteria);
-  const [isFiltersVisible, setIsFiltersVisible] = useState(false);
 
   const [currentMonthYear, setCurrentMonthYear] = useState<string>(new Date().toISOString().slice(0, 7));
   const [budgets, setBudgets] = useState<Budget[]>([]);
@@ -123,66 +91,11 @@ const Dashboard: React.FC = () => {
     fetchAllData();
   }, [fetchAllData]);
 
-  const handleAddTransaction = useCallback((transaction: Omit<Transaction, 'id' | 'userId'>) => {
-    apiAddTransaction(transaction);
-    fetchAllData();
-    setIsTransactionModalOpen(false);
-  }, [fetchAllData]);
-
-  const handleDeleteTransaction = useCallback((id: string) => {
-    if (window.confirm(t('dashboard.confirmDeleteTransaction'))) {
-      apiDeleteTransaction(id);
-      fetchAllData();
-    }
-  }, [fetchAllData, t]);
-  
-  const handleFilterInputChange = useCallback((e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFilterInputs(prev => ({ ...prev, [name]: value }));
-  }, []);
-
-  const handleApplyFilters = useCallback(() => {
-    setActiveFilters(filterInputs);
-    setIsFiltersVisible(false);
-  }, [filterInputs]);
-
-  const handleResetFilters = useCallback(() => {
-    setFilterInputs(initialFilterCriteria);
-    setActiveFilters(initialFilterCriteria);
-  }, []);
-
-  const toggleFiltersVisibility = useCallback(() => {
-    setIsFiltersVisible(prev => !prev);
-  }, []);
-
-  const filteredTransactions = useMemo(() => {
-    return allTransactions.filter(transaction => {
-      const keywordLower = activeFilters.keyword.toLowerCase();
-      const matchesKeyword = activeFilters.keyword ? transaction.description.toLowerCase().includes(keywordLower) || transaction.category.toLowerCase().includes(keywordLower) : true;
-      const matchesType = activeFilters.type === 'ALL' || transaction.type === activeFilters.type;
-      const dateObj = new Date(transaction.date + 'T00:00:00'); 
-      const startDateObj = activeFilters.startDate ? new Date(activeFilters.startDate + 'T00:00:00') : null;
-      const endDateObj = activeFilters.endDate ? new Date(activeFilters.endDate + 'T23:59:59') : null;
-
-      const matchesDate = 
-        (!startDateObj || dateObj >= startDateObj) &&
-        (!endDateObj || dateObj <= endDateObj);
-      const matchesMinAmount = activeFilters.minAmount ? transaction.amount >= parseFloat(activeFilters.minAmount) : true;
-      const matchesMaxAmount = activeFilters.maxAmount ? transaction.amount <= parseFloat(activeFilters.maxAmount) : true;
-      const matchesTag = activeFilters.tag ? transaction.tags?.map(tg => tg.toLowerCase()).includes(activeFilters.tag.toLowerCase()) : true;
-
-      return matchesKeyword && matchesType && matchesDate && matchesMinAmount && matchesMaxAmount && matchesTag;
-    });
-  }, [allTransactions, activeFilters]);
-
-  const isFiltered = useMemo(() => JSON.stringify(activeFilters) !== JSON.stringify(initialFilterCriteria) , [activeFilters]);
+  // handleAddTransaction removed
 
   const { income, expenses, balance } = useMemo(() => {
     let currentIncome = 0;
     let currentExpenses = 0;
-    // Use ALL transactions for summary, not just filtered ones, for overall financial picture.
-    // Or use filteredTransactions if summary should reflect filtered data. For FinTrack, summary usually reflects overall.
-    // Let's use allTransactions for the main summary cards.
     allTransactions.forEach(transaction => {
       if (transaction.type === TransactionType.INCOME) {
         currentIncome += transaction.amount;
@@ -195,9 +108,7 @@ const Dashboard: React.FC = () => {
 
   const expensePieChartData = useMemo((): PieChartData[] => {
     const expenseCategoriesMap: { [key: string]: number } = {};
-    // Pie chart should reflect filtered data if filters are active
-    const sourceTransactions = isFiltered ? filteredTransactions : allTransactions;
-    sourceTransactions
+    allTransactions
       .filter(transaction => transaction.type === TransactionType.EXPENSE)
       .forEach(transaction => {
         const categoryKey = `categories.${transaction.category.replace(/\s+/g, '').replace(/[^\w]/gi, '')}`;
@@ -207,8 +118,33 @@ const Dashboard: React.FC = () => {
     return Object.entries(expenseCategoriesMap)
       .map(([name, value]) => ({ name, value }))
       .sort((a,b) => b.value - a.value);
-  }, [filteredTransactions, allTransactions, isFiltered, t]);
+  }, [allTransactions, t]);
   
+  const incomeExpenseTrendData = useMemo((): MonthlyTrendData[] => {
+    const data: MonthlyTrendData[] = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) { // Last 6 months including current
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const monthYearStr = date.toISOString().slice(0, 7); // YYYY-MM
+      const monthName = date.toLocaleDateString(language, { month: 'short', year: '2-digit' });
+
+      let monthlyIncome = 0;
+      let monthlyExpenses = 0;
+      allTransactions.forEach(tx => {
+        if (tx.date.startsWith(monthYearStr)) {
+          if (tx.type === TransactionType.INCOME) {
+            monthlyIncome += tx.amount;
+          } else {
+            monthlyExpenses += tx.amount;
+          }
+        }
+      });
+      data.push({ month: monthName, income: monthlyIncome, expenses: monthlyExpenses });
+    }
+    return data;
+  }, [allTransactions, language]);
+
+
   const handleMonthChange = (offset: number) => {
     setCurrentMonthYear(prevMonthYear => {
       const date = new Date(prevMonthYear + '-01');
@@ -265,7 +201,15 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 sm:space-y-8">
+      {/* Add Transaction Button - removed from here */}
+
       <SummaryDisplay income={income} expenses={expenses} balance={balance} />
+      
+      {/* New Income/Expense Trend Chart Section */}
+      <div className="fintrack-card">
+        <h2 className="fintrack-section-title">{t('dashboard.charts.incomeExpenseTrendTitle')}</h2>
+        <IncomeExpenseTrendChart data={incomeExpenseTrendData} />
+      </div>
 
       {/* Charts and Budgets Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -308,57 +252,11 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
       
-      {/* Filter and Transactions Section */}
-      <div className="fintrack-card">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
-          <h2 className="fintrack-section-title mb-2 sm:mb-0">{t('dashboard.transactionsTitle')}</h2>
-          <div className="flex space-x-3">
-            <Button onClick={toggleFiltersVisibility} variant="secondary" size="sm" leftIcon={<FilterIcon/>} aria-expanded={isFiltersVisible}>
-              {isFiltersVisible ? t('dashboard.filters.hide') : t('dashboard.filters.show')}
-            </Button>
-            <Button onClick={() => setIsTransactionModalOpen(true)} leftIcon={<PlusIcon />} variant="primary" size="sm">
-              {t('dashboard.addTransactionButton')}
-            </Button>
-          </div>
-        </div>
-
-        {isFiltersVisible && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 border-t border-gray-200 dark:border-darkBorder pt-4 mt-4">
-            <Input label={t('dashboard.filters.keywordLabel')} name="keyword" value={filterInputs.keyword} onChange={handleFilterInputChange} placeholder={t('dashboard.filters.keywordPlaceholder')} />
-            <div>
-                <label htmlFor="filter-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{t('dashboard.filters.typeLabel')}</label>
-                <select id="filter-type" name="type" value={filterInputs.type} onChange={handleFilterInputChange} >
-                    <option value="ALL">{t('dashboard.filters.typeAll')}</option>
-                    <option value={TransactionType.INCOME}>{t('dashboard.filters.typeIncome')}</option>
-                    <option value={TransactionType.EXPENSE}>{t('dashboard.filters.typeExpense')}</option>
-                </select>
-            </div>
-            <Input label={t('dashboard.filters.tagLabel')} name="tag" value={filterInputs.tag} onChange={handleFilterInputChange} placeholder={t('dashboard.filters.tagPlaceholder')} leftIcon={<TagIconSolid className="w-4 h-4 text-gray-400 dark:text-gray-500"/>} />
-            <Input label={t('dashboard.filters.startDateLabel')} name="startDate" type="date" value={filterInputs.startDate} onChange={handleFilterInputChange} />
-            <Input label={t('dashboard.filters.endDateLabel')} name="endDate" type="date" value={filterInputs.endDate} onChange={handleFilterInputChange} />
-            <Input label={t('dashboard.filters.minAmountLabel')} name="minAmount" type="number" value={filterInputs.minAmount} onChange={handleFilterInputChange} placeholder="0.00"/>
-            <Input label={t('dashboard.filters.maxAmountLabel')} name="maxAmount" type="number" value={filterInputs.maxAmount} onChange={handleFilterInputChange} placeholder="1000.00"/>
-            <div className="sm:col-span-2 lg:col-span-3 flex justify-end space-x-3 mt-2">
-                <Button onClick={handleResetFilters} variant="ghost" size="sm" leftIcon={<ArrowPathIcon />}>{t('dashboard.filters.resetButton')}</Button>
-                <Button onClick={handleApplyFilters} variant="primary" size="sm">{t('dashboard.filters.applyButton')}</Button>
-            </div>
-          </div>
-        )}
-        <TransactionList 
-          transactions={filteredTransactions} 
-          onDelete={handleDeleteTransaction} 
-          isFiltered={isFiltered}
-          hasOriginalTransactions={allTransactions.length > 0}
-        />
-      </div>
-
       <section aria-labelledby="ai-tip-heading" className="fintrack-card">
-        <AiFinancialTip balance={balance} recentTransactionsCount={filteredTransactions.length} />
+        <AiFinancialTip balance={balance} recentTransactionsCount={allTransactions.length} />
       </section>
 
-      <Modal isOpen={isTransactionModalOpen} onClose={() => setIsTransactionModalOpen(false)} title={t('dashboard.addTransactionModalTitle')}>
-        <TransactionForm onSubmit={handleAddTransaction} />
-      </Modal>
+      {/* TransactionForm Modal removed from here */}
 
       <Modal 
         isOpen={isBudgetModalOpen} 

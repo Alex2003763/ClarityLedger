@@ -1,14 +1,15 @@
 
-
 import React from 'react';
-import { Logo } from '../ui/Logo'; // Will be updated to FontAwesome
+import { Logo } from '../ui/Logo'; 
 import { useAppContext } from '../../contexts/AppContext';
 
+type PageType = 'dashboard' | 'settings' | 'help' | 'transactions';
+
 interface SidebarProps {
-  onNavigate: (page: 'dashboard' | 'settings' | 'help') => void;
-  currentPage: 'dashboard' | 'settings' | 'help';
+  onNavigate: (page: PageType) => void;
+  currentPage: PageType;
   isOpen: boolean;
-  toggleSidebar: () => void; // For mobile
+  toggleSidebar: () => void; 
 }
 
 const NavLink: React.FC<{
@@ -50,13 +51,19 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPage, isOpen }) =>
           isSidebarOpen={isOpen}
         />
         <NavLink
+          onClick={() => onNavigate('transactions')}
+          iconClass="fas fa-exchange-alt" 
+          label={t('navbar.transactions')}
+          isActive={currentPage === 'transactions'}
+          isSidebarOpen={isOpen}
+        />
+        <NavLink
           onClick={() => onNavigate('settings')}
           iconClass="fas fa-cog"
           label={t('navbar.settings')}
           isActive={currentPage === 'settings'}
           isSidebarOpen={isOpen}
         />
-        {/* Add more links here if needed, e.g., Transactions, Budget, Reports, Savings */}
       </nav>
 
       <div className="mt-auto">

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -65,7 +66,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({
         {customCategories.length === 0 ? (
           <p className="text-xs text-gray-500 dark:text-gray-400 italic">{t('settingsPage.customCategories.noCustomYet')}</p>
         ) : (
-          <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1 custom-scrollbar"> {/* Apply custom scrollbar if needed, or use default */}
+          <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto custom-scrollbar"> {/* Removed p-1 */}
             {customCategories.map(cat => (
               <div 
                 key={`${categoryTypeForTranslation}-custom-${cat}`} 

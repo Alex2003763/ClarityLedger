@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 
 interface ModalProps {
@@ -52,7 +53,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
           <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
           <button
             onClick={onClose}
-            className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            className="p-1 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
             aria-label="Close modal"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

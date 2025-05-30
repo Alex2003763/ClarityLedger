@@ -23,8 +23,8 @@ const Button: React.FC<ButtonProps> = ({
 
   // Updated variant styles based on FinTrack theme
   const variantStyles = {
-    primary: 'bg-primary text-white hover:bg-primaryDark focus:ring-primaryDark dark:hover:bg-primaryLight hover:shadow-primary/30 focus:shadow-primary/30',
-    secondary: 'bg-accent text-white hover:bg-blue-600 focus:ring-blue-700 dark:hover:bg-sky-400 hover:shadow-accent/30 focus:shadow-accent/30', // Using accent for secondary
+    primary: 'bg-primary text-white hover:bg-primaryDark focus:ring-primaryDark dark:hover:bg-primaryLight hover:shadow-primary/30 focus:shadow-primary/30 hover:scale-[1.02] active:scale-[0.98]',
+    secondary: 'bg-accent text-white hover:bg-blue-600 focus:ring-blue-700 dark:hover:bg-sky-400 hover:shadow-accent/30 focus:shadow-accent/30 hover:scale-[1.02] active:scale-[0.98]', // Using accent for secondary
     danger: 'bg-danger text-white hover:bg-red-600 focus:ring-red-700 dark:hover:bg-red-400 hover:shadow-danger/30 focus:shadow-danger/30',
     ghost: 'bg-transparent text-primary hover:bg-primary/10 focus:ring-primary dark:text-primaryLight dark:hover:bg-primaryLight/10 shadow-none hover:shadow-none',
     outline: 'bg-transparent text-primary border border-primary hover:bg-primary/10 focus:ring-primary dark:text-primaryLight dark:border-primaryLight dark:hover:bg-primaryLight/10 shadow-none hover:shadow-none'
