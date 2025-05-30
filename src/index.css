@@ -1,5 +1,10 @@
+/* Apply Tailwind base, components, and utilities */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body { 
-  font-family: 'Inter', sans-serif; 
+  font-family: 'Poppins', 'Inter', sans-serif; 
   /* Default light mode styles */
   @apply bg-lightbg text-lighttext;
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -8,41 +13,59 @@ body {
   /* Dark mode styles */
   @apply bg-darkbg text-darktext;
 }
-/* Custom scrollbar for a cleaner look */
+
+/* Ensure root div takes full height and uses flex for new layout */
+html, body, #root {
+  min-height: 100vh;
+}
+#root {
+  display: flex; /* For sidebar + main content layout */
+}
+
+/* Custom scrollbar for a cleaner look (using Tailwind colors) */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f1f1; /* Light mode track */
+  @apply bg-gray-100 dark:bg-gray-700;
   border-radius: 10px;
-}
-.dark ::-webkit-scrollbar-track {
-  background: #2d3748; /* Dark mode track (gray-800) */
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1; /* slate-300 */
+  @apply bg-gray-400 dark:bg-gray-500;
   border-radius: 10px;
 }
-.dark ::-webkit-scrollbar-thumb {
-  background: #4a5568; /* Dark mode thumb (gray-600) */
-}
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8; /* slate-500 */
-}
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #718096; /* Dark mode thumb hover (gray-500) */
-}
-/* Ensure root div takes full height */
-html, body, #root {
-  min-height: 100vh;
-}
-#root {
-  display: flex;
-  flex-direction: column;
+  @apply bg-gray-500 dark:bg-gray-400;
 }
 
-/* Apply Tailwind base, components, and utilities */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
+/* General Card Styling (can be applied with a class or via @apply in components) */
+.fintrack-card {
+  @apply bg-contentBg dark:bg-darkContentBg rounded-2xl p-6 shadow-main;
+  /* FinTrack cards often have a border-bottom, but can be optional or specific */
+}
+
+/* General Section Title */
+.fintrack-section-title {
+  @apply text-xl font-semibold text-lighttext dark:text-darktext mb-4;
+}
+
+/* Responsive Sidebar specific styles - handled in Sidebar.tsx and App.tsx */
+
+/* Input and Select base styling to match FinTrack */
+select, input[type="text"], input[type="password"], input[type="number"], input[type="date"], textarea {
+    @apply w-full px-4 py-2.5 border border-gray-300 dark:border-darkBorder rounded-lg shadow-sm 
+           focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
+           bg-white dark:bg-darkSurface text-lighttext dark:text-darktext 
+           placeholder-grayText transition-colors duration-200;
+    font-size: 0.95rem;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+    @apply dark:invert-[0.85] dark:brightness-110;
+}
+
+/* Modal backdrop blur if desired (optional) */
+/* .modal-backdrop-blur {
+  backdrop-filter: blur(4px);
+} */

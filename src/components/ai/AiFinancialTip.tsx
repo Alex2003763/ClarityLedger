@@ -47,19 +47,11 @@ const AiFinancialTip: React.FC<AiFinancialTipProps> = ({ balance, recentTransact
     }
   }, [balance, recentTransactionsCount, t, selectedCurrencyCode, selectedCurrencySymbol]);
 
-  // Auto-fetch tip when component mounts and currency info is available and transactions exist
   useEffect(() => {
     const apiKey = localStorage.getItem('clarityCoinOpenRouterApiKey');
     if (apiKey && recentTransactionsCount > 0 && !hasFetchedOnce && selectedCurrencyCode && selectedCurrencySymbol) {
-        // Only fetch if there are transactions to analyze.
-        // And API key exists.
-        // And currency details are loaded.
         fetchTip();
     } else if (!hasFetchedOnce) {
-      // If auto-fetch conditions are not met on the first attempt (e.g., no API key, no transactions),
-      // mark as "attempted" so the initial message is shown by default,
-      // rather than an error for a missing API key or lack of transactions.
-      // The explicit "Get New Tip" button will still show errors if conditions are not met upon click.
       setHasFetchedOnce(true);
     }
 
@@ -67,10 +59,10 @@ const AiFinancialTip: React.FC<AiFinancialTipProps> = ({ balance, recentTransact
 
 
   return (
-    <div className="bg-white dark:bg-darkSurface p-6 rounded-lg shadow-lg transition-colors duration-300">
+    <div className="bg-white dark:bg-darkSurface p-6 rounded-xl shadow-lg transition-colors duration-300">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-200 flex items-center">
-          <LightbulbIcon className="w-6 h-6 text-yellow-500 mr-2" />
+          <LightbulbIcon className="w-7 h-7 text-yellow-400 dark:text-yellow-300 mr-2.5" />
           {t('aiFinancialTip.title')}
         </h3>
         <Button onClick={fetchTip} disabled={isLoading} size="sm" variant="secondary">
@@ -79,25 +71,28 @@ const AiFinancialTip: React.FC<AiFinancialTipProps> = ({ balance, recentTransact
       </div>
       
       {isLoading && (
-        <div className="flex justify-center items-center py-4">
+        <div className="flex justify-center items-center py-6">
           <Spinner size="md" />
         </div>
       )}
 
       {errorMessage && !isLoading && (
-        <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/[0.3] p-3 rounded-md">{errorMessage}</p>
-      )}
-
-      {tip && !isLoading && !errorMessage && ( 
-        <div className="bg-indigo-50 dark:bg-indigo-900/[0.4] border-l-4 border-primary dark:border-primary-light p-4 rounded-md">
-          <p className="text-sm text-gray-700 dark:text-gray-200">{tip}</p>
+        <div className="text-sm text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/[0.4] p-4 rounded-lg border border-red-300 dark:border-red-600" role="alert">
+          <p className="font-medium">{t('aiFinancialTip.errorTitle') || 'Error'}</p>
+          <p>{errorMessage}</p>
         </div>
       )}
 
-      {!isLoading && !tip && !errorMessage && (
-         <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">{t('aiFinancialTip.initialMessage')}</p>
+      {tip && !isLoading && !errorMessage && ( 
+        <blockquote className="bg-indigo-50 dark:bg-indigo-900/[0.5] border-l-4 border-primary dark:border-primary-light p-5 rounded-r-lg shadow-sm my-2">
+          <p className="text-base text-gray-800 dark:text-gray-100 italic leading-relaxed">{tip}</p>
+        </blockquote>
       )}
-      <p className="text-xs text-gray-400 dark:text-gray-500 mt-4 text-center">
+
+      {!isLoading && !tip && !errorMessage && (
+         <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-6 italic">{t('aiFinancialTip.initialMessage')}</p>
+      )}
+      <p className="text-xs text-gray-400 dark:text-gray-500 mt-5 text-center">
         {t('aiFinancialTip.infoText')}
       </p>
     </div>

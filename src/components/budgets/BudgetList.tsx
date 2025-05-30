@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Budget } from '../../types';
 import BudgetItem from './BudgetItem';
@@ -13,11 +14,11 @@ const BudgetList: React.FC<BudgetListProps> = ({ budgets, onEdit, onDelete }) =>
   const { t } = useAppContext();
 
   if (budgets.length === 0) {
-    return <p className="text-center text-gray-500 dark:text-gray-400 py-6">{t('dashboard.budgets.noBudgetsSet')}</p>;
+    return <p className="text-center text-grayText dark:text-gray-400 py-8 text-sm">{t('dashboard.budgets.noBudgetsSet')}</p>;
   }
 
   return (
-    <ul className="divide-y divide-gray-200 dark:divide-darkBorder max-h-[400px] overflow-y-auto pr-2">
+    <ul className="divide-y divide-gray-100 dark:divide-darkBorder/70 max-h-[300px] sm:max-h-[350px] overflow-y-auto pr-1 space-y-1">
       {budgets.map(budget => (
         <BudgetItem 
           key={budget.id} 

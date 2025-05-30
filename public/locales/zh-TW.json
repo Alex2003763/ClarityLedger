@@ -6,6 +6,14 @@
     "dashboard": "儀表板",
     "settings": "設定"
   },
+  "sidebar": {
+    "helpCenter": "幫助中心"
+  },
+  "topbar": {
+    "welcomeMessage": "管理您的財務",
+    "openSidebar": "開啟側邊欄",
+    "closeSidebar": "關閉側邊欄"
+  },
   "settingsPage": {
     "title": "設定",
     "apiSettingsTitle": "API 設定",
@@ -69,6 +77,34 @@
       "deleteSuccess": "類別 '{categoryName}' 已刪除。",
       "errorCannotDeleteDefault": "預設類別無法在此刪除。",
       "confirmDeleteInUse": "類別 '{categoryName}' 目前正被某些交易使用。刪除後將從選擇列表中移除。您確定嗎？"
+    }
+  },
+  "helpCenterPage": {
+    "title": "幫助中心與常見問題",
+    "faq": {
+      "title": "常見問題",
+      "q1": "我的資料是如何儲存的？",
+      "a1": "您的財務資料儲存在您瀏覽器的本地儲存空間（LocalStorage）中。它不會被傳送到任何外部伺服器，以確保您的隱私。",
+      "q2": "ClarityCoin 可以離線使用嗎？",
+      "a2": "是的，ClarityCoin 設計為漸進式網頁應用程式（PWA），在瀏覽器中載入後即可離線工作。",
+      "q3": "我如何備份我的資料？",
+      "a3": "您可以從「設定」頁面的「資料管理」部分將所有資料（包括交易、預算和設定）匯出為 JSON 檔案。您也可以將此資料重新匯入應用程式中。",
+      "q4": "AI 財務提示是免費的嗎？",
+      "a4": "ClarityCoin 使用 OpenRouter API 提供 AI 提示。OpenRouter 提供對各種 AI 模型的存取，其中一些模型可能提供免費額度或需要付費。您需要在「設定」中提供您自己的 OpenRouter API 金鑰。請查閱 OpenRouter 的定價和條款。"
+    },
+    "gettingStarted": {
+      "title": "入門指南",
+      "step": "步驟 {number}",
+      "s1": "前往「儀表板」查看您的財務總覽，包括收入、支出和餘額摘要。",
+      "s2": "使用「儀表板」上的「新增交易」按鈕記錄您的收入和支出。請務必選擇正確的類型和類別。",
+      "s3": "在「儀表板」的「每月預算」部分為不同的支出類別設定每月預算，以追踪您的支出目標。",
+      "s4": "前往「設定」頁面配置您的 OpenRouter API 金鑰以獲取 AI 財務提示、管理自訂交易類別、選擇您偏好的語言和主題，以及管理您的應用程式資料（匯出/匯入）。"
+    },
+    "contact": {
+      "title": "聯絡與支援",
+      "p1": "{appName} 是一款專為個人使用而設計的本機執行應用程式。您的資料會保留在您的裝置上。",
+      "p2": "有關一般問題，請參閱上方的常見問題。如果您遇到技術問題或有任何建議，您可以（假設性地）造訪專案的 GitHub 頁面或社群論壇（如果有的話）。",
+      "githubLink": "在 GitHub 上查看專案 (範例)"
     }
   },
   "dashboard": {
@@ -142,6 +178,13 @@
       "categoryRequired": "類別為必填項。"
     }
   },
+  "transactionTable": {
+    "category": "類別",
+    "description": "描述",
+    "date": "日期",
+    "amount": "金額",
+    "actions": "動作"
+  },
   "budgetForm": {
     "categoryLabel": "類別",
     "selectCategoryPlaceholder": "選擇一個支出類別...",
@@ -165,7 +208,9 @@
   "summaryDisplay": {
     "totalIncome": "總收入",
     "totalExpenses": "總支出",
-    "currentBalance": "目前餘額"
+    "currentBalance": "目前餘額",
+    "incomeSubtext": "較上月增加 X%",
+    "expenseSubtext": "較上月減少 Y%"
   },
   "categoryPieChart": {
     "noData": "尚無支出數據可顯示圖表。"
@@ -176,6 +221,7 @@
     "gettingTipButton": "獲取提示中...",
     "initialMessage": "點擊「獲取新提示」以獲得個人化建議！",
     "infoText": "AI 產生的提示僅供參考。由 OpenRouter 提供技術支援。",
+    "errorTitle": "提示生成失敗",
     "errorApiKeyNotSet": "無法獲取提示：OpenRouter API 金鑰未設定。請在設定頁面中配置。",
     "errorInvalidApiKey": "無法獲取提示：OpenRouter API 金鑰無效。請在設定頁面中檢查。",
     "errorRateLimit": "無法獲取提示：OpenRouter (模型: {model}) 超出速率限制或配額已用完。請檢查您的 OpenRouter 帳戶。",

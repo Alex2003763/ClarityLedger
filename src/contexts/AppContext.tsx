@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
 import {
   Language,
@@ -138,9 +139,18 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     let parsedString = typeof current === 'string' ? current : key;
 
     if (replacements && typeof parsedString === 'string') {
-      Object.keys(replacements).forEach(placeholder => {
-        parsedString = parsedString.replace(new RegExp(`\\{\${placeholder}\\}`, 'g'), String(replacements[placeholder]));
+      let resultString = parsedString;
+      Object.keys(replacements).forEach(placeholderKey => {
+        const valueToInsert = String(replacements[placeholderKey]);
+        const patternToReplace = `{${placeholderKey}}`;
+        // Loop to replace all occurrences, similar to 'g' flag in regex
+        // String.prototype.replaceAll could be used if ES2021 is target,
+        // but a loop is more compatible.
+        while (resultString.includes(patternToReplace)) {
+            resultString = resultString.replace(patternToReplace, valueToInsert);
+        }
       });
+      parsedString = resultString; // Update parsedString with the result of all replacements
     }
     return parsedString;
   }, [translations]);

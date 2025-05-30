@@ -6,6 +6,14 @@
     "dashboard": "Dashboard",
     "settings": "Settings"
   },
+  "sidebar": {
+    "helpCenter": "Help Center"
+  },
+  "topbar": {
+    "welcomeMessage": "Manage Your Finances",
+    "openSidebar": "Open sidebar",
+    "closeSidebar": "Close sidebar"
+  },
   "settingsPage": {
     "title": "Settings",
     "apiSettingsTitle": "API Settings",
@@ -69,6 +77,34 @@
       "deleteSuccess": "Category '{categoryName}' deleted.",
       "errorCannotDeleteDefault": "Default categories cannot be deleted here.",
       "confirmDeleteInUse": "Category '{categoryName}' is currently in use by some transactions. Deleting it will remove it from the selection list. Are you sure?"
+    }
+  },
+  "helpCenterPage": {
+    "title": "Help Center & FAQ",
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": "How is my data stored?",
+      "a1": "Your financial data is stored locally in your browser's storage (LocalStorage). It is not sent to any external server, ensuring your privacy.",
+      "q2": "Can I use ClarityCoin offline?",
+      "a2": "Yes, ClarityCoin is designed as a Progressive Web App (PWA) and can work offline once it has been loaded in your browser.",
+      "q3": "How do I backup my data?",
+      "a3": "You can export all your data, including transactions, budgets, and settings, as a JSON file from the 'Data Management' section on the Settings page. You can also import this data back into the app.",
+      "q4": "Are the AI Financial Tips free?",
+      "a4": "ClarityCoin uses the OpenRouter API to provide AI tips. OpenRouter offers access to various AI models, some of which may have free tiers or require credits. You need to provide your own OpenRouter API key in the Settings. Please check OpenRouter's pricing and terms."
+    },
+    "gettingStarted": {
+      "title": "Getting Started Guide",
+      "step": "Step {number}",
+      "s1": "Navigate to the Dashboard to view your financial overview, including income, expenses, and balance summaries.",
+      "s2": "Use the 'Add Transaction' button on the Dashboard to record your income and expenses. Be sure to select the correct type and category.",
+      "s3": "Set monthly budgets for different expense categories in the 'Monthly Budgets' section on the Dashboard to track your spending goals.",
+      "s4": "Visit the Settings page to configure your OpenRouter API key for AI financial tips, manage custom transaction categories, choose your preferred language and theme, and manage your application data (export/import)."
+    },
+    "contact": {
+      "title": "Contact & Support",
+      "p1": "{appName} is a locally-run application designed for personal use. Your data remains on your device.",
+      "p2": "For general questions, please consult the FAQs above. If you encounter technical issues or have suggestions, you can (hypothetically) visit the project's GitHub page or community forum if one exists.",
+      "githubLink": "Visit Project on GitHub (Example)"
     }
   },
   "dashboard": {
@@ -142,6 +178,13 @@
       "categoryRequired": "Category is required."
     }
   },
+  "transactionTable": {
+    "category": "Category",
+    "description": "Description",
+    "date": "Date",
+    "amount": "Amount",
+    "actions": "Actions"
+  },
   "budgetForm": {
     "categoryLabel": "Category",
     "selectCategoryPlaceholder": "Select an expense category...",
@@ -165,7 +208,9 @@
   "summaryDisplay": {
     "totalIncome": "Total Income",
     "totalExpenses": "Total Expenses",
-    "currentBalance": "Current Balance"
+    "currentBalance": "Current Balance",
+    "incomeSubtext": "+X% from last month",
+    "expenseSubtext": "-Y% from last month"
   },
   "categoryPieChart": {
     "noData": "No expense data to display chart."
@@ -176,6 +221,7 @@
     "gettingTipButton": "Getting Tip...",
     "initialMessage": "Click \"Get New Tip\" for personalized advice!",
     "infoText": "AI-generated tips are for informational purposes only. Powered by OpenRouter.",
+    "errorTitle": "Tip Generation Failed",
     "errorApiKeyNotSet": "Could not fetch a tip: OpenRouter API Key is not set. Please configure it in the Settings page.",
     "errorInvalidApiKey": "Could not fetch a tip: Invalid OpenRouter API Key. Please check it in the Settings page.",
     "errorRateLimit": "Could not fetch a tip: Rate limit exceeded or quota finished for OpenRouter (model: {model}). Please check your OpenRouter account.",

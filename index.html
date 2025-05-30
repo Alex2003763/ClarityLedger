@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ClarityCoin</title>
+  <title>FinTrack - Personal Finance Manager</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -11,33 +11,47 @@
       theme: {
         extend: {
           colors: {
-            primary: {
-              DEFAULT: '#4f46e5', // indigo-600
-              light: '#6366f1', // indigo-500
-              dark: '#3730a3', // indigo-800
-            },
-            secondary: '#0ea5e9', // sky-500
-            accent: '#10b981', // emerald-500
-            danger: '#ef4444', // red-500
-            lightbg: '#f3f4f6', // gray-100
-            darkbg: '#1f2937',  // gray-800
-            lighttext: '#1f2937', // gray-800 (used for text on light backgrounds)
-            darktext: '#f3f4f6',   // gray-100 (used for text on dark backgrounds)
+            primary: '#4361ee', // FinTrack primary
+            secondary: '#3f37c9', // FinTrack secondary (used for sidebar gradient)
+            accent: '#4895ef', // FinTrack accent
+            success: '#4caf50',
+            danger: '#f44336',
+            warning: '#ff9800',
             
-            // Component-specific dark mode colors
-            darkSurface: '#374151', // gray-700 for cards/modals in dark mode
-            darkBorder: '#4b5563', // gray-600 for borders in dark mode
+            lightbg: '#f5f7fb', // FinTrack light page background
+            darkbg: '#111827',  // Custom dark page background (e.g., gray-900)
+            
+            lighttext: '#1e293b', // FinTrack dark text (used on light backgrounds)
+            darktext: '#f5f7fb',   // FinTrack light text (used on dark backgrounds)
+            
+            contentBg: '#ffffff', // FinTrack card background (light mode)
+            darkContentBg: '#1e293b', // FinTrack card background (dark mode) - slate-800
+            
+            grayText: '#94a3b8', // FinTrack gray text
+
+            // For existing components that might use primary-light/dark shades
+            primaryLight: '#4895ef', // Lighter shade of primary
+            primaryDark: '#3f37c9',  // Darker shade of primary
+            
+            // Dark mode specific surface colors
+            darkSurface: '#1f2937', // gray-800 for cards/modals in dark mode (can be same as darkContentBg)
+            darkBorder: '#374151', // gray-700 for borders in dark mode
           },
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans: ['Poppins', 'Inter', 'sans-serif'], // Add Poppins as primary
           },
+          boxShadow: {
+            'main': 'rgba(99, 99, 99, 0.1) 0px 2px 8px 0px;', // FinTrack shadow
+            'card-hover': 'rgba(99, 99, 99, 0.15) 0px 4px 12px 0px;',
+          }
         }
       }
     }
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- Global styles will be injected by Vite from src/index.css via src/index.tsx -->
 <script type="importmap">
 {

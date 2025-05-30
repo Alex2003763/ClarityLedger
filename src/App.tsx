@@ -1,30 +1,70 @@
 
+
 import React, { useState, useCallback, useEffect } from 'react';
 import Dashboard from './components/core/Dashboard';
-import Navbar from './components/core/Navbar';
 import SettingsPage from './components/core/SettingsPage';
-import { AppProvider, useAppContext } from './contexts/AppContext'; // Import useAppContext
+import Sidebar from './components/core/Sidebar'; // New Sidebar
+import TopBar from './components/core/TopBar';   // New TopBar
+import HelpCenterPage from './components/core/HelpCenterPage'; // New Help Center Page
+import { AppProvider, useAppContext } from './contexts/AppContext';
 
-type Page = 'dashboard' | 'settings';
+type Page = 'dashboard' | 'settings' | 'help';
 
 const AppContent: React.FC = () => {
+  const { t } = useAppContext();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
-  const { t } = useAppContext(); // Use translations
+  // Default sidebar to open on desktop (width > 768px), closed on mobile
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth > 768); 
 
   const handleNavigate = useCallback((page: Page) => {
     setCurrentPage(page);
+    // If on mobile and sidebar is fully open, consider closing it on navigation
+    if (window.innerWidth <= 768 && isSidebarOpen) { 
+      // setIsSidebarOpen(false); // Optional: close sidebar on nav on mobile
+    }
+  }, [isSidebarOpen]); // Added isSidebarOpen to dependency array if logic inside depends on it
+  
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen(prev => !prev);
   }, []);
 
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 768) { // Desktop
+        setIsSidebarOpen(true); // Sidebar is open (expanded)
+      } else { // Mobile
+        setIsSidebarOpen(false); // Sidebar is closed (collapsed)
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    // Call handleResize on initial mount to set the correct sidebar state
+    // This was missing and could lead to incorrect initial state if window initially small but useState defaulted to true
+    handleResize(); 
+    return () => window.removeEventListener('resize', handleResize);
+  }, []); // Empty dependency array: effect runs only on mount and unmount.
+  
+  let pageTitle = '';
+  if (currentPage === 'dashboard') pageTitle = t('navbar.dashboard');
+  if (currentPage === 'settings') pageTitle = t('navbar.settings');
+  if (currentPage === 'help') pageTitle = t('helpCenterPage.title');
+
+
   return (
-    <div className="min-h-screen flex flex-col bg-lightbg dark:bg-darkbg text-lighttext dark:text-darktext transition-colors duration-300">
-      <Navbar onNavigate={handleNavigate} currentPage={currentPage} />
-      <main className="flex-grow container mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8"> {/* Adjusted padding */}
-        {currentPage === 'dashboard' && <Dashboard />}
-        {currentPage === 'settings' && <SettingsPage />}
-      </main>
-      <footer className="bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 text-center p-4 text-sm transition-colors duration-300"> {/* Updated styles */}
-        {t('footer', { year: new Date().getFullYear().toString() })}
-      </footer>
+    <div className="flex min-h-screen bg-lightbg dark:bg-darkbg transition-colors duration-300 w-full">
+      <Sidebar onNavigate={handleNavigate} currentPage={currentPage} isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      
+      {/* Main content area: margin adjusts based on sidebar state */}
+      <div className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64' : 'ml-20' }`}>
+        <TopBar pageTitle={pageTitle} toggleSidebar={toggleSidebar} isSidebarOpen={isSidebarOpen} />
+        <main className="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto">
+          {currentPage === 'dashboard' && <Dashboard />}
+          {currentPage === 'settings' && <SettingsPage />}
+          {currentPage === 'help' && <HelpCenterPage />}
+        </main>
+        <footer className="bg-white dark:bg-darkContentBg text-grayText text-center p-4 text-sm border-t border-gray-200 dark:border-darkBorder transition-colors duration-300">
+           {t('footer', { year: new Date().getFullYear().toString() })}
+        </footer>
+      </div>
     </div>
   );
 };
