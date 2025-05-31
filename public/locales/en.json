@@ -1,12 +1,13 @@
 
 {
-  "appName": "ClarityCoin",
-  "footer": "© {year} ClarityCoin. Manage your finances with clarity.",
+  "appName": "ClarityLedger",
+  "footer": "© {year} ClarityLedger. Manage your finances with clarity.",
   "navbar": {
     "dashboard": "Dashboard",
     "settings": "Settings",
     "transactions": "Transactions",
-    "reports": "Reports"
+    "reports": "Reports",
+    "billScan": "Scan Bill"
   },
   "sidebar": {
     "helpCenter": "Help Center"
@@ -30,6 +31,11 @@
     "topExpenseCategoriesChart": {
       "title": "Top Expense Categories",
       "noData": "No expense data available for the selected period to display this chart."
+    },
+    "tabs": {
+      "ariaLabel": "Report Tabs",
+      "spendingTrend": "Spending Trend",
+      "topCategories": "Top Categories"
     }
   },
   "settingsPage": {
@@ -40,16 +46,19 @@
     "apiKeyLabel": "OpenRouter API Key",
     "apiKeyPlaceholder": "Enter your OpenRouter API Key",
     "apiKeyHelp": "Leave blank and save to remove the key.",
-    "modelNameLabel": "AI Model Name",
+    "modelNameLabel": "AI Model Name (for Financial Tips)",
     "modelNamePlaceholder": "e.g., deepseek/deepseek-chat",
     "modelNameHelp": "Enter the full model name from OpenRouter (e.g., `anthropic/claude-3-haiku-20240307`). If left empty, \"{defaultModel}\" will be used by default for AI tips.",
+    "ocrModelNameLabel": "OCR AI Model Name (for Bill Scan)",
+    "ocrModelNamePlaceholder": "e.g., qwen/qwen2.5-vl-72b-instruct:free",
+    "ocrModelNameHelp": "Enter model for OCR enhancement (e.g., '{defaultModel}'). If empty, defaults to a specific OCR model or the financial tip model.",
     "saveButton": "Save Settings",
     "savingButton": "Saving...",
     "settingsSavedButton": "Settings Saved!",
     "successMessage": "Settings saved successfully!",
     "apiKeyRemovedMessage": "API Key removed. Model configuration updated.",
     "failureMessage": "Failed to save settings. Please try again.",
-    "settingsUsageInfo": "ClarityCoin uses your OpenRouter key and specified model to provide personalized financial tips.",
+    "settingsUsageInfo": "ClarityLedger uses your OpenRouter key and specified models to provide AI features.",
     "uiSettingsTitle": "UI Settings",
     "languageLabel": "Language",
     "darkModeLabel": "Dark Mode",
@@ -77,7 +86,7 @@
     "importErrorMessageFile": "Failed to read file or invalid file type. Please select a valid JSON backup file.",
     "importErrorMessageFormat": "Invalid JSON format in backup file. Please check the file content.",
     "importErrorMessageValidation": "Invalid data structure in backup file.",
-    "importInvalidDataSubText": "The backup file is not in the expected format or is corrupted. Please ensure you are using a valid ClarityCoin backup file.",
+    "importInvalidDataSubText": "The backup file is not in the expected format or is corrupted. Please ensure you are using a valid ClarityLedger backup file.",
     "customCategories": {
       "title": "Category Management",
       "description": "Manage your custom income and expense categories. Default categories cannot be deleted.",
@@ -103,12 +112,12 @@
       "title": "Frequently Asked Questions",
       "q1": "How is my data stored?",
       "a1": "Your financial data is stored locally in your browser's storage (LocalStorage). It is not sent to any external server, ensuring your privacy.",
-      "q2": "Can I use ClarityCoin offline?",
-      "a2": "Yes, ClarityCoin is designed as a Progressive Web App (PWA) and can work offline once it has been loaded in your browser.",
+      "q2": "Can I use ClarityLedger offline?",
+      "a2": "Yes, ClarityLedger is designed as a Progressive Web App (PWA) and can work offline once it has been loaded in your browser.",
       "q3": "How do I backup my data?",
       "a3": "You can export all your data, including transactions, budgets, and settings, as a JSON file from the 'Data Management' section on the Settings page. You can also import this data back into the app.",
       "q4": "Are the AI Financial Tips free?",
-      "a4": "ClarityCoin uses the OpenRouter API to provide AI tips. OpenRouter offers access to various AI models, some of which may have free tiers or require credits. You need to provide your own OpenRouter API key in the Settings. Please check OpenRouter's pricing and terms."
+      "a4": "ClarityLedger uses the OpenRouter API to provide AI tips. OpenRouter offers access to various AI models, some ofwhich may have free tiers or require credits. You need to provide your own OpenRouter API key in the Settings. Please check OpenRouter's pricing and terms."
     },
     "gettingStarted": {
       "title": "Getting Started Guide",
@@ -256,6 +265,57 @@
     "errorNetwork": "Error connecting to OpenRouter (model: {model}): {message}",
     "errorGenericNetwork": "Sorry, I couldn't fetch a financial tip right now due to a network or client-side issue. Please try again later."
   },
+  "billScanPage": {
+    "title": "Scan Bill with OCR",
+    "description": "Upload an image of your bill to automatically extract details.",
+    "uploadTitle": "Upload Bill Image",
+    "uploadLabel": "Upload a file",
+    "dragAndDrop": "or drag and drop",
+    "fileTypes": "PNG, JPG, GIF up to 10MB",
+    "previewTitle": "Image Preview",
+    "imagePreviewAlt": "Bill image preview",
+    "processButton": "Extract Information (Standard)",
+    "processButtonAI": "Extract with AI",
+    "processingButton": "Extracting...",
+    "resultsTitle": "Extracted Information",
+    "extractedAmount": "Amount:",
+    "extractedDate": "Date:",
+    "extractedVendor": "Vendor:",
+    "extractedCurrency": "Currency:",
+    "suggestedCategory": "Suggested Category:",
+    "fullText": "Full Extracted Text (Tesseract):",
+    "noTextExtracted": "No text could be extracted from the image.",
+    "notFound": "Not found",
+    "noResultsYet": "Upload an image and click 'Extract Information' to see results.",
+    "createTransactionButton": "Create Transaction",
+    "transactionModalTitle": "Create Transaction from Bill",
+    "defaultDescription": "Bill: {fileName}",
+    "billSuffix": "Bill",
+    "transactionAddedSuccess": "Transaction successfully created!",
+    "errorTitle": "Error",
+    "aiErrorTitle": "AI Extraction Error",
+    "successTitle": "Success!",
+    "errorNoImageSelected": "Please select an image file first.",
+    "errorOcrFailed": "OCR processing failed: {message}",
+    "errorAIFailed": "AI extraction failed: {message}",
+    "errorNoDataForAI": "No OCR text or image available to send to AI for enhancement.",
+    "aiEnhanceButton": "AI Enhance Extraction",
+    "enhanceWithAIButton": "Enhance with AI",
+    "aiProcessing": "AI Processing...",
+    "aiEnhancedResultsTitle": "AI Enhanced Results",
+    "aiDirectResultsTitle": "AI OCR Results",
+    "tesseractResultsTitle": "Standard OCR Results",
+    "tesseractResultsFallbackTitle": "Standard OCR Results (Fallback)",
+    "aiErrorNotice": "AI enhancement failed. Using Standard OCR results if available.",
+    "statusInitializing": "Initializing OCR engine...",
+    "statusDone": "Extraction complete.",
+    "statusError": "An error occurred.",
+    "extractionMethodTitle": "Extraction Method",
+    "methodStandardOCR": "Standard OCR",
+    "methodStandardOCRDescription": "Fast, local processing using Tesseract.js.",
+    "methodAIOCR": "AI OCR",
+    "methodAIOCRDescription": "Slower, cloud-based AI for higher accuracy. Requires API key."
+  },
   "categories": {
     "Food": "Food",
     "Groceries": "Groceries",
@@ -271,7 +331,9 @@
     "Salary": "Salary",
     "Bonus": "Bonus",
     "Investment": "Investment",
-    "Gift": "Gift"
+    "Gift": "Gift",
+    "Credit Card": "Credit Card",
+    "Tax": "Tax"
   },
   "currencies": {
     "USD": "US Dollar",

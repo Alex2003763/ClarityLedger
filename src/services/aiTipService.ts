@@ -1,9 +1,11 @@
+
 // src/services/aiTipService.ts
 import { 
   LOCAL_STORAGE_OPENROUTER_API_KEY, 
   LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL, 
   DEFAULT_OPENROUTER_MODEL 
 } from '../constants';
+import type { Language } from '../constants'; // Import Language type
 
 export interface AiTipError {
   key: string; // Translation key
@@ -11,7 +13,7 @@ export interface AiTipError {
   params?: Record<string, string | number>;
 }
 
-const generatePrompt = (balance: number, recentTransactionsCount: number, currencyCode: string, currencySymbol: string): string => {
+const generatePrompt = (balance: number, recentTransactionsCount: number, currencyCode: string, currencySymbol: string, language: Language): string => {
   let financialStatus = "stable";
   if (balance < 0) {
     financialStatus = "in debt";
@@ -27,6 +29,9 @@ const generatePrompt = (balance: number, recentTransactionsCount: number, curren
   } else if (recentTransactionsCount > 20) {
     activityLevel = "high";
   }
+  
+  const languageInstruction = language === 'zh-TW' ? '請以繁體中文回答。' : 'Please respond in English.';
+
 
   return `
     You are a friendly and insightful financial advisor.
@@ -37,6 +42,7 @@ const generatePrompt = (balance: number, recentTransactionsCount: number, curren
     Avoid overly generic advice. Be specific if possible.
     Do not use markdown formatting in your response.
     The user is managing their personal finances.
+    ${languageInstruction}
     For example, if they have low balance and high activity, you might suggest reviewing spending habits.
     If they have a healthy balance and low activity, you might suggest looking into investment options.
   `;
@@ -47,7 +53,8 @@ export const getFinancialTip = async (
   balance: number, 
   recentTransactionsCount: number,
   currencyCode: string,
-  currencySymbol: string
+  currencySymbol: string,
+  language: Language 
 ): Promise<string | AiTipError> => {
   const apiKey = localStorage.getItem(LOCAL_STORAGE_OPENROUTER_API_KEY);
   const modelName = localStorage.getItem(LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL) || DEFAULT_OPENROUTER_MODEL;
@@ -59,7 +66,7 @@ export const getFinancialTip = async (
     };
   }
 
-  const prompt = generatePrompt(balance, recentTransactionsCount, currencyCode, currencySymbol);
+  const prompt = generatePrompt(balance, recentTransactionsCount, currencyCode, currencySymbol, language);
 
   try {
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {

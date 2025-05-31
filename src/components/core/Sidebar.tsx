@@ -4,7 +4,7 @@ import React from 'react';
 import { Logo } from '../ui/Logo'; 
 import { useAppContext } from '../../contexts/AppContext';
 
-type PageType = 'dashboard' | 'settings' | 'help' | 'transactions' | 'reports';
+type PageType = 'dashboard' | 'settings' | 'help' | 'transactions' | 'reports' | 'billScan';
 
 interface SidebarProps {
   onNavigate: (page: PageType) => void;
@@ -59,8 +59,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPage, isOpen }) =>
           isSidebarOpen={isOpen}
         />
         <NavLink
+          onClick={() => onNavigate('billScan')}
+          iconClass="fas fa-camera" // Icon for Bill Scan
+          label={t('navbar.billScan', {defaultValue: "Scan Bill"})}
+          isActive={currentPage === 'billScan'}
+          isSidebarOpen={isOpen}
+        />
+        <NavLink
           onClick={() => onNavigate('reports')}
-          iconClass="fas fa-chart-pie" // Example icon for reports
+          iconClass="fas fa-chart-pie" 
           label={t('navbar.reports')}
           isActive={currentPage === 'reports'}
           isSidebarOpen={isOpen}

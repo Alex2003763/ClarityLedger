@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
+
+import React, { useState, useCallback } from 'react';
 import { getFinancialTip, AiTipError } from '../../services/aiTipService';
 import Button from '../ui/Button';
 import Spinner from '../ui/Spinner';
@@ -16,20 +17,17 @@ const LightbulbIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 const AiFinancialTip: React.FC<AiFinancialTipProps> = ({ balance, recentTransactionsCount }) => {
-  const { t, selectedCurrencyCode, selectedCurrencySymbol } = useAppContext();
+  const { t, selectedCurrencyCode, selectedCurrencySymbol, language } = useAppContext();
   const [tip, setTip] = useState<string>(''); 
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
-  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
-
 
   const fetchTip = useCallback(async () => {
     setIsLoading(true);
-    setHasFetchedOnce(true);
     setErrorMessage(''); 
     setTip('');         
     try {
-      const fetchedOutcome = await getFinancialTip(balance, recentTransactionsCount, selectedCurrencyCode, selectedCurrencySymbol);
+      const fetchedOutcome = await getFinancialTip(balance, recentTransactionsCount, selectedCurrencyCode, selectedCurrencySymbol, language);
       if (typeof fetchedOutcome === 'string') {
         setTip(fetchedOutcome);
       } else { 
@@ -45,18 +43,7 @@ const AiFinancialTip: React.FC<AiFinancialTipProps> = ({ balance, recentTransact
     } finally {
       setIsLoading(false);
     }
-  }, [balance, recentTransactionsCount, t, selectedCurrencyCode, selectedCurrencySymbol]);
-
-  useEffect(() => {
-    const apiKey = localStorage.getItem('clarityCoinOpenRouterApiKey');
-    if (apiKey && recentTransactionsCount > 0 && !hasFetchedOnce && selectedCurrencyCode && selectedCurrencySymbol) {
-        fetchTip();
-    } else if (!hasFetchedOnce) {
-      setHasFetchedOnce(true);
-    }
-
-  }, [fetchTip, recentTransactionsCount, hasFetchedOnce, selectedCurrencyCode, selectedCurrencySymbol, t]);
-
+  }, [balance, recentTransactionsCount, selectedCurrencyCode, selectedCurrencySymbol, language, t]);
 
   return (
     <div className="bg-white dark:bg-darkSurface p-6 rounded-xl shadow-lg transition-colors duration-300">

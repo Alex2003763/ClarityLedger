@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App'; // Corrected to relative path
-import './index.css'; // Import global styles
+import App from './App'; // Corrected path
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

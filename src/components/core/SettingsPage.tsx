@@ -19,7 +19,9 @@ import {
   DEFAULT_INCOME_CATEGORIES,
   LOCAL_STORAGE_CUSTOM_INCOME_CATEGORIES,
   LOCAL_STORAGE_CUSTOM_EXPENSE_CATEGORIES,
-  LOCAL_STORAGE_BUDGETS_KEY
+  LOCAL_STORAGE_BUDGETS_KEY,
+  LOCAL_STORAGE_OCR_OPENROUTER_MODEL, // New import
+  DEFAULT_OCR_OPENROUTER_MODEL    // New import
 } from '../../constants';
 import { useAppContext } from '../../contexts/AppContext';
 import { getTransactions, saveTransactions } from '../../services/transactionService';
@@ -78,6 +80,7 @@ const GlobeAltIcon: React.FC<{className?: string}> = ({className}) => (
 interface AppSettingsBackup {
   apiKey: string;
   modelName: string;
+  ocrModelName: string; // New field
   language: Language;
   darkMode: boolean;
   selectedCurrency: string;
@@ -96,6 +99,7 @@ const SettingsPage: React.FC = () => {
   const { t, language, setLanguage, isDarkMode, setIsDarkMode, selectedCurrencyCode, setSelectedCurrencyCode } = useAppContext();
   const [apiKey, setApiKey] = useState('');
   const [modelName, setModelName] = useState(DEFAULT_OPENROUTER_MODEL);
+  const [ocrModelName, setOcrModelName] = useState(DEFAULT_OCR_OPENROUTER_MODEL); // New state
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{text: string, type: 'success' | 'error', subText?: string} | null>(null);
   
@@ -117,6 +121,9 @@ const SettingsPage: React.FC = () => {
     const storedModel = localStorage.getItem(LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL);
     setModelName(storedModel === null ? DEFAULT_OPENROUTER_MODEL : storedModel);
 
+    const storedOcrModel = localStorage.getItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL); // Load OCR Model
+    setOcrModelName(storedOcrModel === null ? DEFAULT_OCR_OPENROUTER_MODEL : storedOcrModel);
+
     setCustomIncomeCategories(JSON.parse(localStorage.getItem(LOCAL_STORAGE_CUSTOM_INCOME_CATEGORIES) || '[]'));
     setCustomExpenseCategories(JSON.parse(localStorage.getItem(LOCAL_STORAGE_CUSTOM_EXPENSE_CATEGORIES) || '[]'));
   }, []);
@@ -126,6 +133,7 @@ const SettingsPage: React.FC = () => {
     setMessage(null);
     const trimmedApiKey = apiKey.trim();
     const trimmedModelName = modelName.trim();
+    const trimmedOcrModelName = ocrModelName.trim(); // Trim OCR model
 
     try {
       if (!trimmedApiKey) {
@@ -138,6 +146,10 @@ const SettingsPage: React.FC = () => {
       }
       localStorage.setItem(LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL, trimmedModelName || DEFAULT_OPENROUTER_MODEL);
       setModelName(trimmedModelName || DEFAULT_OPENROUTER_MODEL);
+
+      localStorage.setItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL, trimmedOcrModelName || DEFAULT_OCR_OPENROUTER_MODEL); // Save OCR Model
+      setOcrModelName(trimmedOcrModelName || DEFAULT_OCR_OPENROUTER_MODEL);
+
     } catch (error) {
       console.error("Error saving settings:", error);
       setMessage({ text: t('settingsPage.failureMessage'), type: 'error' });
@@ -166,6 +178,7 @@ const SettingsPage: React.FC = () => {
       const settingsToExport: AppSettingsBackup = {
         apiKey: localStorage.getItem(LOCAL_STORAGE_OPENROUTER_API_KEY) || '',
         modelName: localStorage.getItem(LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL) || DEFAULT_OPENROUTER_MODEL,
+        ocrModelName: localStorage.getItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL) || DEFAULT_OCR_OPENROUTER_MODEL, // Export OCR Model
         language: (localStorage.getItem(LOCAL_STORAGE_LANGUAGE_KEY) || DEFAULT_LANGUAGE) as Language,
         darkMode: localStorage.getItem(LOCAL_STORAGE_DARK_MODE_KEY) === 'true',
         selectedCurrency: localStorage.getItem(LOCAL_STORAGE_SELECTED_CURRENCY_KEY) || DEFAULT_CURRENCY_CODE,
@@ -174,7 +187,7 @@ const SettingsPage: React.FC = () => {
       };
 
       const backupData: AppBackupData = {
-        version: "1.0.0",
+        version: "1.0.1", // Updated version for new setting
         settings: settingsToExport,
         transactions,
         budgets,
@@ -185,7 +198,7 @@ const SettingsPage: React.FC = () => {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       const date = new Date().toISOString().split('T')[0];
-      const filename = `claritycoin_backup_${date}.json`;
+      const filename = `clarityLedger_backup_${date}.json`;
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);
@@ -202,10 +215,10 @@ const SettingsPage: React.FC = () => {
   
   const isValidTransactionItem = (item: any): item is Partial<Transaction> => {
     return typeof item === 'object' && item !== null &&
-      (typeof item.id === 'string' || item.id === undefined) && // ID can be missing if it's a new transaction to be imported
-      (typeof item.userId === 'string' || item.userId === undefined) && // UserID can be missing
+      (typeof item.id === 'string' || item.id === undefined) && 
+      (typeof item.userId === 'string' || item.userId === undefined) && 
       typeof item.description === 'string' && item.description.trim() !== '' &&
-      typeof item.amount === 'number' && item.amount >= 0 && // Amount should be positive, type determines +/-
+      typeof item.amount === 'number' && item.amount >= 0 && 
       (item.type === TransactionType.INCOME || item.type === TransactionType.EXPENSE) &&
       typeof item.category === 'string' && item.category.trim() !== '' &&
       typeof item.date === 'string' && !isNaN(new Date(item.date).getTime()) &&
@@ -227,62 +240,34 @@ const SettingsPage: React.FC = () => {
       return false;
     }
 
-    if (data.version !== "1.0.0") {
+    // Allow version 1.0.0 (without ocrModelName) or 1.0.1 (with ocrModelName)
+    if (data.version !== "1.0.0" && data.version !== "1.0.1") {
       console.error("Validation Error: Invalid version.", data.version);
       return false;
     }
 
-    // Validate settings
     const settings = data.settings;
     if (typeof settings !== 'object' || settings === null) {
       console.error("Validation Error: Settings block is invalid.");
       return false;
     }
-    if (typeof settings.apiKey !== 'string') {
-      console.error("Validation Error: apiKey is not a string.", settings.apiKey);
-      return false;
-    }
-    if (typeof settings.modelName !== 'string') {
-      console.error("Validation Error: modelName is not a string.", settings.modelName);
-      return false;
-    }
-    if (settings.language !== 'en' && settings.language !== 'zh-TW') {
-      console.error("Validation Error: Invalid language.", settings.language);
-      return false;
-    }
-    if (typeof settings.darkMode !== 'boolean') {
-      console.error("Validation Error: darkMode is not a boolean.", settings.darkMode);
-      return false;
-    }
-    if (!AVAILABLE_CURRENCIES.some(c => c.code === settings.selectedCurrency)) {
-      console.error("Validation Error: Invalid selectedCurrency.", settings.selectedCurrency);
-      return false;
-    }
-    if (!Array.isArray(settings.customIncomeCategories) || !settings.customIncomeCategories.every((cat: any) => typeof cat === 'string')) {
-      console.error("Validation Error: customIncomeCategories is invalid.");
-      return false;
-    }
-    if (!Array.isArray(settings.customExpenseCategories) || !settings.customExpenseCategories.every((cat: any) => typeof cat === 'string')) {
-      console.error("Validation Error: customExpenseCategories is invalid.");
-      return false;
-    }
+    if (typeof settings.apiKey !== 'string') return false;
+    if (typeof settings.modelName !== 'string') return false;
+    // ocrModelName is optional for version 1.0.0 for backward compatibility
+    if (data.version === "1.0.1" && typeof settings.ocrModelName !== 'string') return false; 
+    if (settings.language !== 'en' && settings.language !== 'zh-TW') return false;
+    if (typeof settings.darkMode !== 'boolean') return false;
+    if (!AVAILABLE_CURRENCIES.some(c => c.code === settings.selectedCurrency)) return false;
+    if (!Array.isArray(settings.customIncomeCategories) || !settings.customIncomeCategories.every((cat: any) => typeof cat === 'string')) return false;
+    if (!Array.isArray(settings.customExpenseCategories) || !settings.customExpenseCategories.every((cat: any) => typeof cat === 'string')) return false;
 
-    // Validate transactions
     if (!Array.isArray(data.transactions) || !data.transactions.every(isValidTransactionItem)) {
-      console.error("Validation Error: Transactions array is invalid or contains invalid items.");
-      data.transactions.forEach((tx: any, index: number) => {
-        if (!isValidTransactionItem(tx)) console.error(`Invalid transaction at index ${index}:`, tx);
-      });
-      return false;
+        console.error("Validation Error: Transactions array is invalid or contains invalid items.");
+        return false;
     }
-
-    // Validate budgets
     if (!Array.isArray(data.budgets) || !data.budgets.every(isValidBudgetItem)) {
-      console.error("Validation Error: Budgets array is invalid or contains invalid items.");
-      data.budgets.forEach((b: any, index: number) => {
-        if (!isValidBudgetItem(b)) console.error(`Invalid budget at index ${index}:`, b);
-      });
-      return false;
+        console.error("Validation Error: Budgets array is invalid or contains invalid items.");
+        return false;
     }
     return true;
   };
@@ -299,7 +284,6 @@ const SettingsPage: React.FC = () => {
         setFileToImport(null);
       }
     }
-    // Reset file input value so same file can be selected again if needed
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -325,24 +309,27 @@ const SettingsPage: React.FC = () => {
       
       const { settings, transactions, budgets } = parsedData;
 
-      // Apply settings
       localStorage.setItem(LOCAL_STORAGE_OPENROUTER_API_KEY, settings.apiKey);
       setApiKey(settings.apiKey);
       localStorage.setItem(LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL, settings.modelName);
       setModelName(settings.modelName);
+      // Handle ocrModelName: if it exists in settings, use it; otherwise, use default
+      const importedOcrModel = settings.ocrModelName || DEFAULT_OCR_OPENROUTER_MODEL;
+      localStorage.setItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL, importedOcrModel);
+      setOcrModelName(importedOcrModel);
+
       localStorage.setItem(LOCAL_STORAGE_LANGUAGE_KEY, settings.language);
-      setLanguage(settings.language); // Update context
+      setLanguage(settings.language);
       localStorage.setItem(LOCAL_STORAGE_DARK_MODE_KEY, String(settings.darkMode));
-      setIsDarkMode(settings.darkMode); // Update context
+      setIsDarkMode(settings.darkMode);
       localStorage.setItem(LOCAL_STORAGE_SELECTED_CURRENCY_KEY, settings.selectedCurrency);
-      setSelectedCurrencyCode(settings.selectedCurrency); // Update context
+      setSelectedCurrencyCode(settings.selectedCurrency);
       
       localStorage.setItem(LOCAL_STORAGE_CUSTOM_INCOME_CATEGORIES, JSON.stringify(settings.customIncomeCategories));
       setCustomIncomeCategories(settings.customIncomeCategories);
       localStorage.setItem(LOCAL_STORAGE_CUSTOM_EXPENSE_CATEGORIES, JSON.stringify(settings.customExpenseCategories));
       setCustomExpenseCategories(settings.customExpenseCategories);
 
-      // Ensure transactions and budgets have default user ID and new IDs if missing (for robustness)
       const processedTransactions = transactions.map(tx => ({
         ...tx,
         id: tx.id || `txn_${new Date().toISOString()}_${Math.random().toString(36).substring(2, 9)}`,
@@ -358,8 +345,6 @@ const SettingsPage: React.FC = () => {
       saveAllUserBudgets(processedBudgets);
       
       setMessage({ text: t('settingsPage.importSuccessMessage'), type: 'success', subText: t('settingsPage.importSuccessInfoReload')});
-      // Optionally, could trigger a window.location.reload() here or instruct user to refresh.
-      // For now, relying on context updates and potential navigation.
 
     } catch (error) {
       console.error("Error importing data:", error);
@@ -375,8 +360,6 @@ const SettingsPage: React.FC = () => {
         fileInputRef.current.value = ''; 
       }
       setTimeout(() => {
-        // Clear message only if it's not the success message with reload info,
-        // or clear after a longer time for success.
         if(message?.type !== 'success' || message?.subText !== t('settingsPage.importSuccessInfoReload')) {
             setMessage(null)
         }
@@ -423,11 +406,7 @@ const SettingsPage: React.FC = () => {
   };
 
   const handleDeleteCategory = (nameToDelete: string, type: 'income' | 'expense') => {
-    // We don't allow deleting default categories through this UI anyway, but this is an extra check.
-    // This function is only for custom categories.
     setMessage(null);
-
-    // Check if category is in use (simplified check: just for transactions currently)
     const transactions = getTransactions();
     const isInUse = transactions.some(tx => tx.category.toLowerCase() === nameToDelete.toLowerCase() && 
                                         ((type === 'income' && tx.type === TransactionType.INCOME) || 
@@ -438,7 +417,6 @@ const SettingsPage: React.FC = () => {
             return;
         }
     }
-
 
     if (type === 'income') {
       const updatedCategories = customIncomeCategories.filter(cat => cat.toLowerCase() !== nameToDelete.toLowerCase());
@@ -497,6 +475,17 @@ const SettingsPage: React.FC = () => {
           containerClassName="mb-4"
         />
         <p className="text-xs text-gray-500 dark:text-gray-400 -mt-2 mb-6">{t('settingsPage.modelNameHelp', {defaultModel: DEFAULT_OPENROUTER_MODEL})}</p>
+
+        <Input
+          label={t('settingsPage.ocrModelNameLabel', { defaultValue: 'OCR AI Model Name'})}
+          id="ocrModelName"
+          value={ocrModelName}
+          onChange={(e) => setOcrModelName(e.target.value)}
+          placeholder={t('settingsPage.ocrModelNamePlaceholder', { defaultValue: 'e.g., anthropic/claude-3-haiku-20240307' })}
+          containerClassName="mb-4"
+        />
+        <p className="text-xs text-gray-500 dark:text-gray-400 -mt-2 mb-6">{t('settingsPage.ocrModelNameHelp', {defaultModel: DEFAULT_OCR_OPENROUTER_MODEL, defaultValue: `Enter model for OCR enhancement (e.g., '${DEFAULT_OCR_OPENROUTER_MODEL}'). If empty, defaults to financial tip model or a specific OCR default.`})}</p>
+
 
         <Button onClick={handleSaveSettings} isLoading={isLoading} leftIcon={!isLoading ? <CheckCircleIcon className="w-5 h-5"/> : undefined}>
           {isLoading ? t('settingsPage.savingButton') : t('settingsPage.saveButton')}
@@ -625,4 +614,3 @@ const SettingsPage: React.FC = () => {
 };
 
 export default SettingsPage;
-
