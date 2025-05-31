@@ -1,14 +1,12 @@
 
-const CACHE_NAME = 'clarityledger-cache-v1.1'; // Increment version if you change cached files
+const CACHE_NAME = 'clarityledger-cache-v1.2'; // Increment version for changes
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/src/index.tsx', // This should be the path to your main JS bundle if you have one
+  '/manifest.json', // Cache the manifest
   // Tailwind CSS from CDN
   'https://cdn.tailwindcss.com',
-  // Google Fonts CSS (the specific URL loaded by the browser after redirect)
-  // It's better to self-host fonts or use a more robust caching strategy for CDN font CSS.
-  // For simplicity, we'll try to cache the main request.
+  // Google Fonts CSS
   'https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap',
   // Font Awesome CSS from CDN
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
@@ -24,18 +22,18 @@ const ASSETS_TO_CACHE = [
   '/icons/icon-192x192.png',
   '/icons/icon-512x512.png',
   '/icons/icon-maskable-192x192.png',
-  '/icons/icon-maskable-512x512.png'
-  // Add other critical assets like logo if it's a separate file
+  '/icons/icon-maskable-512x512.png',
+  '/icons/apple-touch-icon.png' // For iOS home screen
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('Opened cache and caching assets');
-        // Add assets one by one to handle potential individual failures better.
+        console.log('Opened cache and caching assets for version:', CACHE_NAME);
         const promises = ASSETS_TO_CACHE.map(assetUrl => {
-          return cache.add(assetUrl).catch(err => {
+          // Use Request object with cache: 'reload' to ensure fresh assets are fetched for the SW cache
+          return cache.add(new Request(assetUrl, { cache: 'reload' })).catch(err => {
             console.warn(`Failed to cache ${assetUrl}:`, err);
           });
         });
@@ -68,12 +66,10 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
 
   // For navigation requests (HTML), try network first, then cache.
-  // This ensures users get the latest HTML if online, but can still load offline.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
         .then(response => {
-          // If successful, cache the new response for this URL (e.g. index.html)
           if (response.ok) {
             const responseToCache = response.clone();
             caches.open(CACHE_NAME).then(cache => {
@@ -83,9 +79,8 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // Network failed, try to serve from cache
           return caches.match(request).then(cachedResponse => {
-            return cachedResponse || caches.match('/'); // Fallback to root if specific page not found
+            return cachedResponse || caches.match('/') || caches.match('/index.html');
           });
         })
     );
@@ -99,22 +94,21 @@ self.addEventListener('fetch', (event) => {
         if (cachedResponse) {
           return cachedResponse;
         }
-        // If not in cache, fetch from network
         return fetch(request).then((networkResponse) => {
-          // Optionally, cache new assets dynamically if they are from your origin
-          // or known CDNs that are part of the app shell.
-          // Be careful with caching everything, especially third-party opaque responses.
           if (networkResponse && networkResponse.ok) {
-             // Check if the request URL is one of the assets we intend to cache or from a known CDN.
              const url = new URL(request.url);
+             const knownCDNs = [
+                'cdn.tailwindcss.com',
+                'fonts.googleapis.com',
+                'fonts.gstatic.com',
+                'cdnjs.cloudflare.com',
+                'esm.sh',
+                'cdn.jsdelivr.net'
+             ];
+             // Cache if it's one of the predefined assets or from a known CDN
              const shouldCache = ASSETS_TO_CACHE.includes(url.pathname) ||
-                                 ASSETS_TO_CACHE.includes(request.url) || // For full CDN URLs
-                                 url.hostname === 'cdn.tailwindcss.com' ||
-                                 url.hostname === 'fonts.googleapis.com' ||
-                                 url.hostname === 'fonts.gstatic.com' || // Google Fonts also uses gstatic
-                                 url.hostname === 'cdnjs.cloudflare.com' ||
-                                 url.hostname === 'esm.sh' ||
-                                 url.hostname === 'cdn.jsdelivr.net';
+                                 ASSETS_TO_CACHE.includes(request.url) || // For full URLs in ASSETS_TO_CACHE
+                                 knownCDNs.includes(url.hostname);
 
             if (shouldCache) {
                 const responseToCache = networkResponse.clone();
@@ -126,10 +120,11 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         }).catch(error => {
-            console.warn(`Fetch failed for ${request.url}; returning offline page or error`, error);
-            // You could return a custom offline page/image here if appropriate
-            // For now, just let the browser handle the error for non-essential failed fetches.
-            // For essential assets not found in cache & network, this will result in a browser error.
+            console.warn(`Fetch failed for ${request.url}; resource might be unavailable offline.`, error);
+            // For non-essential assets, browser will show its own error.
+            // For essential assets not cached, this will lead to a broken app offline.
+            // Consider returning a generic fallback for specific asset types if needed.
+            // e.g., for images: return caches.match('/placeholder-image.png');
         });
       })
   );

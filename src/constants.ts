@@ -20,6 +20,10 @@ export const LOCAL_STORAGE_CUSTOM_EXPENSE_CATEGORIES = 'clarityLedgerCustomExpen
 // Key for budgets
 export const LOCAL_STORAGE_BUDGETS_KEY = 'clarityLedgerBudgets';
 
+// Key for Recurring Transactions
+export const LOCAL_STORAGE_RECURRING_TRANSACTIONS_KEY = 'clarityLedgerRecurringTransactions';
+export const LAST_RECURRING_PROCESSING_TIME_KEY = 'clarityLedgerLastRecurringProcessingTime';
+
 
 export const LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL = 'clarityLedgerSelectedOpenRouterModel';
 export const DEFAULT_OPENROUTER_MODEL = 'deepseek/deepseek-chat:free';

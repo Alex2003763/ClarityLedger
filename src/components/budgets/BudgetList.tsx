@@ -1,12 +1,11 @@
-
 import React from 'react';
-import { Budget } from '../../types';
+import { BudgetWithDetails } from '../../types'; // Changed from Budget to BudgetWithDetails
 import BudgetItem from './BudgetItem';
 import { useAppContext } from '../../contexts/AppContext';
 
 interface BudgetListProps {
-  budgets: (Budget & { spentAmount: number })[];
-  onEdit: (budget: Budget) => void;
+  budgets: BudgetWithDetails[]; // Use the detailed type
+  onEdit: (budget: BudgetWithDetails) => void; // Pass the detailed type
   onDelete: (budgetId: string) => void;
 }
 

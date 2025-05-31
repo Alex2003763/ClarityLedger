@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, ChangeEvent, useRef } from 'react';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -20,15 +19,18 @@ import {
   LOCAL_STORAGE_CUSTOM_INCOME_CATEGORIES,
   LOCAL_STORAGE_CUSTOM_EXPENSE_CATEGORIES,
   LOCAL_STORAGE_BUDGETS_KEY,
-  LOCAL_STORAGE_OCR_OPENROUTER_MODEL, // New import
-  DEFAULT_OCR_OPENROUTER_MODEL    // New import
+  LOCAL_STORAGE_OCR_OPENROUTER_MODEL, 
+  DEFAULT_OCR_OPENROUTER_MODEL,
+  LOCAL_STORAGE_RECURRING_TRANSACTIONS_KEY // For backup
 } from '../../constants';
 import { useAppContext } from '../../contexts/AppContext';
 import { getTransactions, saveTransactions } from '../../services/transactionService';
 import { getAllBudgets, saveAllUserBudgets } from '../../services/budgetService';
-import { Transaction, TransactionType, Budget, CurrencyDefinition } from '../../types';
+import { Transaction, TransactionType, Budget, CurrencyDefinition, RecurringTransaction } from '../../types';
 import SettingsIcon from '../ui/SettingsIcon'; 
 import CategoryManager from '../settings/CategoryManager';
+import { convertTransactionsToCSV, downloadCSV } from '../../services/exportService'; // CSV Export
+import { getRecurringTransactions, saveAllRecurringTransactions } from '../../services/recurringTransactionService'; // For backup
 
 // Icons
 const KeyIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -76,11 +78,17 @@ const GlobeAltIcon: React.FC<{className?: string}> = ({className}) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A11.978 11.978 0 0 1 12 16.5c-.93 0-1.813-.12-2.662-.35M3.284 14.253A11.978 11.978 0 0 0 12 16.5c.93 0 1.813-.12 2.662-.35m0 0a8.959 8.959 0 0 0 2.662-2.352m0 0a8.997 8.997 0 0 0-7.843-4.582M3.284 7.582A8.997 8.997 0 0 1 12 3" />
     </svg>
 );
+const TableCellsIcon: React.FC<{className?: string}> = ({className}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5V7.5c0-1.425.824-2.688 2.006-3.201M3.375 19.5c.024-.07.049-.14.076-.21M19.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125S17.25 4.254 17.25 4.875V7.5m2.25 0V18.375c0 .621-.504 1.125-1.125 1.125M19.5 7.5h-1.5M19.5 7.5c-.024.07-.049.14-.076.21M16.5 7.5h-1.5m-12.75-3.128c1.182.513 2.006 1.776 2.006 3.201V7.5M4.5 7.5h1.5m0 0c.024.07.049.14.076.21M7.5 7.5h1.5m0 0c.024.07.049.14.076.21M10.5 7.5h1.5m0 0c.024.07.049.14.076.21M13.5 7.5h1.5m3.75-3.75c.621 0 1.125.504 1.125 1.125M12.75 4.125c-.621 0-1.125.504-1.125 1.125M12.75 4.125V7.5M12.75 4.125c.024-.07.049-.14.076-.21M9.75 4.125c-.621 0-1.125.504-1.125 1.125M9.75 4.125V7.5M9.75 4.125c.024-.07.049-.14.076-.21M6.75 4.125c-.621 0-1.125.504-1.125 1.125M6.75 4.125V7.5M6.75 4.125c.024-.07.049-.14.076-.21m0 9.75h10.5m-10.5 0V10.5c0-.621.504-1.125 1.125-1.125h8.25c.621 0 1.125.504 1.125 1.125v6.375m-10.5 0c.024.07.049.14.076.21m10.5 0c-.024.07-.049.14-.076.21" />
+    </svg>
+);
+
 
 interface AppSettingsBackup {
   apiKey: string;
   modelName: string;
-  ocrModelName: string; // New field
+  ocrModelName: string; 
   language: Language;
   darkMode: boolean;
   selectedCurrency: string;
@@ -88,10 +96,11 @@ interface AppSettingsBackup {
   customExpenseCategories: string[];
 }
 interface AppBackupData {
-  version: string;
+  version: string; // e.g., "1.0.2" for new fields
   settings: AppSettingsBackup;
   transactions: Transaction[];
-  budgets: Budget[];
+  budgets: Budget[]; // Will now include allowRollover
+  recurringTransactions?: RecurringTransaction[]; // New field
 }
 
 
@@ -99,7 +108,7 @@ const SettingsPage: React.FC = () => {
   const { t, language, setLanguage, isDarkMode, setIsDarkMode, selectedCurrencyCode, setSelectedCurrencyCode } = useAppContext();
   const [apiKey, setApiKey] = useState('');
   const [modelName, setModelName] = useState(DEFAULT_OPENROUTER_MODEL);
-  const [ocrModelName, setOcrModelName] = useState(DEFAULT_OCR_OPENROUTER_MODEL); // New state
+  const [ocrModelName, setOcrModelName] = useState(DEFAULT_OCR_OPENROUTER_MODEL); 
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState<{text: string, type: 'success' | 'error', subText?: string} | null>(null);
   
@@ -121,7 +130,7 @@ const SettingsPage: React.FC = () => {
     const storedModel = localStorage.getItem(LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL);
     setModelName(storedModel === null ? DEFAULT_OPENROUTER_MODEL : storedModel);
 
-    const storedOcrModel = localStorage.getItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL); // Load OCR Model
+    const storedOcrModel = localStorage.getItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL); 
     setOcrModelName(storedOcrModel === null ? DEFAULT_OCR_OPENROUTER_MODEL : storedOcrModel);
 
     setCustomIncomeCategories(JSON.parse(localStorage.getItem(LOCAL_STORAGE_CUSTOM_INCOME_CATEGORIES) || '[]'));
@@ -133,7 +142,7 @@ const SettingsPage: React.FC = () => {
     setMessage(null);
     const trimmedApiKey = apiKey.trim();
     const trimmedModelName = modelName.trim();
-    const trimmedOcrModelName = ocrModelName.trim(); // Trim OCR model
+    const trimmedOcrModelName = ocrModelName.trim(); 
 
     try {
       if (!trimmedApiKey) {
@@ -147,7 +156,7 @@ const SettingsPage: React.FC = () => {
       localStorage.setItem(LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL, trimmedModelName || DEFAULT_OPENROUTER_MODEL);
       setModelName(trimmedModelName || DEFAULT_OPENROUTER_MODEL);
 
-      localStorage.setItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL, trimmedOcrModelName || DEFAULT_OCR_OPENROUTER_MODEL); // Save OCR Model
+      localStorage.setItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL, trimmedOcrModelName || DEFAULT_OCR_OPENROUTER_MODEL); 
       setOcrModelName(trimmedOcrModelName || DEFAULT_OCR_OPENROUTER_MODEL);
 
     } catch (error) {
@@ -169,16 +178,17 @@ const SettingsPage: React.FC = () => {
     setTimeout(() => setMessage(null), 3000);
   };
 
-  const handleExportData = () => {
+  const handleExportData = () => { // Full JSON Backup
     setMessage(null);
     try {
       const transactions = getTransactions();
       const budgets = getAllBudgets();
+      const recurringTxs = getRecurringTransactions();
       
       const settingsToExport: AppSettingsBackup = {
         apiKey: localStorage.getItem(LOCAL_STORAGE_OPENROUTER_API_KEY) || '',
         modelName: localStorage.getItem(LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL) || DEFAULT_OPENROUTER_MODEL,
-        ocrModelName: localStorage.getItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL) || DEFAULT_OCR_OPENROUTER_MODEL, // Export OCR Model
+        ocrModelName: localStorage.getItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL) || DEFAULT_OCR_OPENROUTER_MODEL, 
         language: (localStorage.getItem(LOCAL_STORAGE_LANGUAGE_KEY) || DEFAULT_LANGUAGE) as Language,
         darkMode: localStorage.getItem(LOCAL_STORAGE_DARK_MODE_KEY) === 'true',
         selectedCurrency: localStorage.getItem(LOCAL_STORAGE_SELECTED_CURRENCY_KEY) || DEFAULT_CURRENCY_CODE,
@@ -187,10 +197,11 @@ const SettingsPage: React.FC = () => {
       };
 
       const backupData: AppBackupData = {
-        version: "1.0.1", // Updated version for new setting
+        version: "1.0.2", // Updated version for new budget and recurring fields
         settings: settingsToExport,
         transactions,
         budgets,
+        recurringTransactions: recurringTxs,
       };
 
       const jsonData = JSON.stringify(backupData, null, 2);
@@ -209,6 +220,27 @@ const SettingsPage: React.FC = () => {
     } catch (error) {
       console.error("Error exporting data:", error);
       setMessage({ text: t('settingsPage.exportErrorMessage'), type: 'error' });
+    }
+    setTimeout(() => setMessage(null), 5000);
+  };
+
+  const handleExportTransactionsCSV = () => {
+    setMessage(null);
+    try {
+        const transactions = getTransactions();
+        if (transactions.length === 0) {
+            setMessage({text: t('settingsPage.exportNoTransactionsMessage', {defaultValue: "No transactions to export."}), type: 'error'});
+            setTimeout(() => setMessage(null), 3000);
+            return;
+        }
+        const csvData = convertTransactionsToCSV(transactions);
+        const date = new Date().toISOString().split('T')[0];
+        const filename = `clarityLedger_transactions_${date}.csv`;
+        downloadCSV(csvData, filename);
+        setMessage({text: t('settingsPage.exportCsvSuccessMessage', {filename}), type: 'success'});
+    } catch (error) {
+        console.error("Error exporting transactions to CSV:", error);
+        setMessage({ text: t('settingsPage.exportCsvErrorMessage'), type: 'error' });
     }
     setTimeout(() => setMessage(null), 5000);
   };
@@ -231,7 +263,24 @@ const SettingsPage: React.FC = () => {
           (typeof item.userId === 'string' || item.userId === undefined) &&
           typeof item.category === 'string' && item.category.trim() !== '' &&
           typeof item.targetAmount === 'number' && item.targetAmount > 0 &&
-          typeof item.monthYear === 'string' && item.monthYear.match(/^\d{4}-\d{2}$/) !== null;
+          typeof item.monthYear === 'string' && item.monthYear.match(/^\d{4}-\d{2}$/) !== null &&
+          (typeof item.allowRollover === 'boolean' || item.allowRollover === undefined); // Check new field
+  };
+
+  const isValidRecurringTransactionItem = (item: any): item is Partial<RecurringTransaction> => {
+    return typeof item === 'object' && item !== null &&
+      (typeof item.id === 'string' || item.id === undefined) &&
+      (typeof item.userId === 'string' || item.userId === undefined) &&
+      typeof item.description === 'string' &&
+      typeof item.amount === 'number' && item.amount > 0 &&
+      (item.type === TransactionType.INCOME || item.type === TransactionType.EXPENSE) &&
+      typeof item.category === 'string' &&
+      typeof item.frequency === 'string' && // Add more specific enum check if needed
+      typeof item.startDate === 'string' && !isNaN(new Date(item.startDate).getTime()) &&
+      (item.endDate === undefined || item.endDate === null || (typeof item.endDate === 'string' && !isNaN(new Date(item.endDate).getTime()))) &&
+      typeof item.nextDueDate === 'string' && !isNaN(new Date(item.nextDueDate).getTime()) &&
+      (typeof item.isActive === 'boolean' || item.isActive === undefined) &&
+      (Array.isArray(item.tags) ? item.tags.every((tag: any) => typeof tag === 'string') : item.tags === undefined);
   };
 
   const isValidAppBackupData = (data: any): data is AppBackupData => {
@@ -240,8 +289,8 @@ const SettingsPage: React.FC = () => {
       return false;
     }
 
-    // Allow version 1.0.0 (without ocrModelName) or 1.0.1 (with ocrModelName)
-    if (data.version !== "1.0.0" && data.version !== "1.0.1") {
+    // Allow version 1.0.0, 1.0.1, 1.0.2
+    if (!["1.0.0", "1.0.1", "1.0.2"].includes(data.version)) {
       console.error("Validation Error: Invalid version.", data.version);
       return false;
     }
@@ -253,8 +302,7 @@ const SettingsPage: React.FC = () => {
     }
     if (typeof settings.apiKey !== 'string') return false;
     if (typeof settings.modelName !== 'string') return false;
-    // ocrModelName is optional for version 1.0.0 for backward compatibility
-    if (data.version === "1.0.1" && typeof settings.ocrModelName !== 'string') return false; 
+    if ((data.version === "1.0.1" || data.version === "1.0.2") && typeof settings.ocrModelName !== 'string' && settings.ocrModelName !== undefined) return false; 
     if (settings.language !== 'en' && settings.language !== 'zh-TW') return false;
     if (typeof settings.darkMode !== 'boolean') return false;
     if (!AVAILABLE_CURRENCIES.some(c => c.code === settings.selectedCurrency)) return false;
@@ -268,6 +316,12 @@ const SettingsPage: React.FC = () => {
     if (!Array.isArray(data.budgets) || !data.budgets.every(isValidBudgetItem)) {
         console.error("Validation Error: Budgets array is invalid or contains invalid items.");
         return false;
+    }
+    if (data.version === "1.0.2") {
+        if (data.recurringTransactions !== undefined && (!Array.isArray(data.recurringTransactions) || !data.recurringTransactions.every(isValidRecurringTransactionItem))) {
+             console.error("Validation Error: Recurring transactions array is invalid or contains invalid items.");
+             return false;
+        }
     }
     return true;
   };
@@ -307,13 +361,13 @@ const SettingsPage: React.FC = () => {
         return;
       }
       
-      const { settings, transactions, budgets } = parsedData;
+      const { settings, transactions, budgets, recurringTransactions } = parsedData;
 
       localStorage.setItem(LOCAL_STORAGE_OPENROUTER_API_KEY, settings.apiKey);
       setApiKey(settings.apiKey);
       localStorage.setItem(LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL, settings.modelName);
       setModelName(settings.modelName);
-      // Handle ocrModelName: if it exists in settings, use it; otherwise, use default
+      
       const importedOcrModel = settings.ocrModelName || DEFAULT_OCR_OPENROUTER_MODEL;
       localStorage.setItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL, importedOcrModel);
       setOcrModelName(importedOcrModel);
@@ -340,9 +394,23 @@ const SettingsPage: React.FC = () => {
       const processedBudgets = budgets.map(b => ({
         ...b,
         id: b.id || `budget_${new Date().toISOString()}_${Math.random().toString(36).substring(2, 9)}`,
-        userId: DEFAULT_USER_ID
+        userId: DEFAULT_USER_ID,
+        allowRollover: b.allowRollover || false // Ensure new field has default
       }));
       saveAllUserBudgets(processedBudgets);
+
+      if (parsedData.version === "1.0.2" && recurringTransactions) {
+        const processedRecurringTxs = recurringTransactions.map(rtx => ({
+            ...rtx,
+            id: rtx.id || `rectxn_${new Date().toISOString()}_${Math.random().toString(36).substring(2, 9)}`,
+            userId: DEFAULT_USER_ID,
+            isActive: rtx.isActive === undefined ? true : rtx.isActive,
+        }));
+        saveAllRecurringTransactions(processedRecurringTxs);
+      } else {
+        // If importing from an older version without recurring transactions, clear existing ones
+        localStorage.removeItem(LOCAL_STORAGE_RECURRING_TRANSACTIONS_KEY);
+      }
       
       setMessage({ text: t('settingsPage.importSuccessMessage'), type: 'success', subText: t('settingsPage.importSuccessInfoReload')});
 
@@ -583,15 +651,18 @@ const SettingsPage: React.FC = () => {
             <DatabaseIcon className="w-6 h-6 mr-2 text-accent dark:text-emerald-400"/>
             {t('settingsPage.dataManagementTitle')}
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Button onClick={handleExportData} variant="primary" leftIcon={<DownloadIcon />}>
-                {t('settingsPage.exportDataButton')}
+        <div className="space-y-3">
+            <Button onClick={handleExportData} variant="primary" leftIcon={<DownloadIcon />} className="w-full">
+                {t('settingsPage.exportDataButton')} ({t('settingsPage.exportFormatJson', {defaultValue: "JSON"})})
             </Button>
-            <Button onClick={() => fileInputRef.current?.click()} variant="secondary" leftIcon={<UploadIcon />} isLoading={isImporting}>
-                {isImporting ? t('settingsPage.importProcessingMessage') : t('settingsPage.importDataButton')}
+            <Button onClick={handleExportTransactionsCSV} variant="primary" leftIcon={<TableCellsIcon />} className="w-full">
+                {t('settingsPage.exportCsvButton', {defaultValue: "Export Transactions to CSV"})}
             </Button>
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" className="hidden" aria-hidden="true" />
+            <Button onClick={() => fileInputRef.current?.click()} variant="secondary" leftIcon={<UploadIcon />} isLoading={isImporting} className="w-full">
+                {isImporting ? t('settingsPage.importProcessingMessage') : t('settingsPage.importDataButton')} ({t('settingsPage.exportFormatJson', {defaultValue: "JSON"})})
+            </Button>
         </div>
+        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept=".json" className="hidden" aria-hidden="true" />
       </section>
 
       <Modal

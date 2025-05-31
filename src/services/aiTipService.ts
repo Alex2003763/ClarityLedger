@@ -14,37 +14,49 @@ export interface AiTipError {
 }
 
 const generatePrompt = (balance: number, recentTransactionsCount: number, currencyCode: string, currencySymbol: string, language: Language): string => {
-  let financialStatus = "stable";
+  let financialStatusDescription = "stable";
   if (balance < 0) {
-    financialStatus = "in debt";
-  } else if (balance < 100) { // Assuming USD-like scale, adjust if necessary
-    financialStatus = "low";
-  } else if (balance > 5000) {
-    financialStatus = "healthy";
+    financialStatusDescription = "currently in debt";
+  } else if (balance < 100) { // Assuming USD-like scale, adjust if necessary based on currency context
+    financialStatusDescription = "on the lower side";
+  } else if (balance > 5000) { // Adjust based on currency/user context
+    financialStatusDescription = "looking healthy";
   }
 
-  let activityLevel = "moderate";
+  let transactionActivityDescription = "moderate";
   if (recentTransactionsCount < 5) {
-    activityLevel = "low";
+    transactionActivityDescription = "low";
   } else if (recentTransactionsCount > 20) {
-    activityLevel = "high";
+    transactionActivityDescription = "high";
   }
   
   const languageInstruction = language === 'zh-TW' ? '請以繁體中文回答。' : 'Please respond in English.';
 
-
   return `
-    You are a friendly and insightful financial advisor.
-    A user has a current balance of ${currencySymbol}${balance.toFixed(2)} ${currencyCode} and has made ${recentTransactionsCount} transactions recently.
-    Their financial status can be described as ${financialStatus} and their transaction activity is ${activityLevel}.
-    Provide a concise (2-3 sentences), actionable, and encouraging financial tip based on this information.
-    Focus on practical advice they can implement.
-    Avoid overly generic advice. Be specific if possible.
-    Do not use markdown formatting in your response.
-    The user is managing their personal finances.
-    ${languageInstruction}
-    For example, if they have low balance and high activity, you might suggest reviewing spending habits.
-    If they have a healthy balance and low activity, you might suggest looking into investment options.
+    You are Clarity, the friendly and insightful AI financial advisor integrated within the ClarityLedger personal finance app. Your goal is to provide encouraging and actionable financial tips to users to help them improve their financial well-being.
+
+    User's Current Financial Snapshot within ClarityLedger:
+    - Current Balance: ${currencySymbol}${balance.toFixed(2)} ${currencyCode}
+    - Recent Transaction Activity: ${transactionActivityDescription} (${recentTransactionsCount} transactions recently)
+    - Derived Financial Status: ${financialStatusDescription}
+
+    Based on this snapshot, provide ONE concise (2-3 sentences maximum), practical, and encouraging financial tip. The tip should be highly relevant to the user's current situation as described.
+
+    Key Guidelines for Your Tip:
+    1.  **Actionable:** Suggest a concrete step the user can consider.
+    2.  **Relevant to ClarityLedger Users:** Frame advice in a way that aligns with actions someone managing their finances might take (e.g., reviewing spending categories, setting a budget goal, building savings).
+    3.  **Specific (Avoid Generic):** Instead of "save more money," suggest *how* or *what to consider* based on their snapshot. For example, if balance is low and activity high, suggest reviewing transaction categories in ClarityLedger to identify areas for potential savings.
+    4.  **Encouraging Tone:** Be positive, empathetic, and supportive.
+    5.  **Concise:** Strictly 2-3 sentences maximum.
+    6.  **No Markdown:** Plain text response only.
+    7.  **Language:** ${languageInstruction}
+
+    Example Scenarios:
+    -   **Low Balance, High Activity:** "ClarityLedger shows a good amount of recent activity. Have you considered reviewing your expense categories in the app? Pinpointing where most of your spending goes could reveal opportunities to save and help build up your balance. Every small adjustment adds up!"
+    -   **Healthy Balance, Low Activity:** "Your balance in ClarityLedger is looking healthy, which is great progress! If you're not already, perhaps explore setting a new savings goal in the app, or consider options for making your money grow, like researching low-risk investments that align with your comfort level."
+    -   **In Debt, Moderate Activity:** "Managing debt can be challenging, but tracking it in ClarityLedger is a positive step. Consider reviewing your budget to see if you can allocate a bit more towards payments on the debt with the highest interest rate. Consistent effort, even small, makes a big difference over time!"
+
+    Now, provide a tip for the user described above.
   `;
 };
 
@@ -78,7 +90,7 @@ export const getFinancialTip = async (
       body: JSON.stringify({
         model: modelName,
         messages: [{ role: "user", content: prompt }],
-        max_tokens: 150,
+        max_tokens: 150, // Max tokens for 2-3 sentences
         temperature: 0.7,
       }),
     });

@@ -16,8 +16,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- or default, black -->
   <meta name="apple-mobile-web-app-title" content="ClarityLedger">
   
-  <!-- Placeholder for iOS splash screen icons (optional, but good practice) -->
-  <!-- <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"> -->
+  <!-- Apple Touch Icon (for Home Screen icon on iOS) -->
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"> 
   <!-- Add more apple-touch-startup-image if needed for different resolutions -->
 
   <title>ClarityLedger</title>
@@ -60,6 +60,7 @@
           boxShadow: {
             'main': 'rgba(99, 99, 99, 0.1) 0px 2px 8px 0px;', // FinTrack shadow
             'card-hover': 'rgba(99, 99, 99, 0.15) 0px 4px 12px 0px;',
+            'top-nav-bar': '0 -2px 10px rgba(0, 0, 0, 0.07)', // Shadow for bottom nav bar
           },
           keyframes: {
             fadeIn: {
@@ -112,12 +113,12 @@
     @layer components {
       /* General Card Styling */
       .fintrack-card {
-        @apply bg-contentBg dark:bg-darkContentBg rounded-2xl p-6 shadow-main transition-shadow duration-300;
+        @apply bg-contentBg dark:bg-darkContentBg rounded-2xl p-4 sm:p-6 shadow-main transition-shadow duration-300;
       }
 
       /* General Section Title */
       .fintrack-section-title {
-        @apply text-xl font-semibold text-lighttext mb-4; /* Base styles */
+        @apply text-lg sm:text-xl font-semibold text-lighttext mb-4; /* Base styles */
       }
       .dark .fintrack-section-title { /* Explicit dark mode styling */
         @apply text-darktext;
@@ -125,13 +126,12 @@
 
       /* Input and Select base styling */
       select, input[type="text"], input[type="password"], input[type="number"], input[type="date"], textarea {
-          @apply w-full px-4 py-2.5 border border-gray-300 dark:border-darkBorder rounded-lg shadow-sm 
+          @apply w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 dark:border-darkBorder rounded-lg shadow-sm 
                  focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
                  bg-white dark:bg-darkSurface text-lighttext dark:text-darktext 
                  placeholder-grayText 
                  hover:border-gray-400 dark:hover:border-gray-500
-                 transition-all duration-200 ease-in-out;
-          font-size: 0.95rem; /* Retain explicit font size for form elements */
+                 transition-all duration-200 ease-in-out text-sm sm:text-base;
       }
       input[type="date"]::-webkit-calendar-picker-indicator {
           @apply dark:invert-[0.85] dark:brightness-110;

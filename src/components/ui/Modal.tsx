@@ -37,7 +37,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
   const backdropBaseClasses = "fixed inset-0 z-50 flex items-center justify-center bg-black p-4 transition-opacity duration-300 ease-in-out";
   const backdropAnimatedClasses = isMounted ? 'bg-opacity-50 dark:bg-opacity-70' : 'bg-opacity-0';
 
-  const contentBaseClasses = `bg-white dark:bg-darkSurface rounded-lg shadow-xl p-6 w-full ${sizeClasses[size]} transform transition-all duration-300 ease-in-out`;
+  const contentBaseClasses = `bg-white dark:bg-darkSurface rounded-lg shadow-xl flex flex-col w-full ${sizeClasses[size]} transform transition-all duration-300 ease-in-out`;
   const contentAnimatedClasses = isMounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95';
 
   return (
@@ -49,7 +49,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
         className={`${contentBaseClasses} ${contentAnimatedClasses}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-darkBorder">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
           <button
             onClick={onClose}
@@ -61,7 +61,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
             </svg>
           </button>
         </div>
-        <div>{children}</div>
+        <div className="p-6 overflow-y-auto max-h-[calc(85vh-100px)] sm:max-h-[calc(85vh-120px)] custom-scrollbar"> {/* Adjusted max-height and padding moved here for content */}
+            {children}
+        </div>
       </div>
     </div>
   );

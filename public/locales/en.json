@@ -7,7 +7,8 @@
     "settings": "Settings",
     "transactions": "Transactions",
     "reports": "Reports",
-    "billScan": "Scan Bill"
+    "billScan": "Scan Bill",
+    "recurring": "Recurring"
   },
   "sidebar": {
     "helpCenter": "Help Center"
@@ -35,7 +36,20 @@
     "tabs": {
       "ariaLabel": "Report Tabs",
       "spendingTrend": "Spending Trend",
-      "topCategories": "Top Categories"
+      "topCategories": "Top Categories",
+      "cashFlow": "Cash Flow"
+    },
+    "cashFlowReport": {
+      "summaryTitle": "Cash Flow Summary",
+      "totalIncome": "Total Income",
+      "totalExpenses": "Total Expenses",
+      "netCashFlow": "Net Cash Flow",
+      "incomeSourcesTitle": "Income Sources",
+      "expenseCategoriesTitle": "Expense Categories",
+      "categoryHeader": "Category",
+      "amountHeader": "Amount",
+      "noIncomeData": "No income recorded for this period.",
+      "noExpenseData": "No expenses recorded for this period."
     }
   },
   "settingsPage": {
@@ -69,15 +83,20 @@
     "switchToLightMode": "Switch to Light Mode",
     "switchToDarkMode": "Switch to Dark Mode",
     "dataManagementTitle": "Data Management",
-    "exportDataButton": "Export Data",
+    "exportDataButton": "Export All Data",
+    "exportFormatJson": "JSON",
+    "exportCsvButton": "Export Transactions to CSV",
+    "exportCsvSuccessMessage": "Transactions exported successfully as {filename}!",
+    "exportCsvErrorMessage": "Failed to export transactions to CSV. Please try again.",
+    "exportNoTransactionsMessage": "No transactions to export.",
     "importDataButton": "Import Data",
     "importConfirmTitle": "Confirm Import",
     "importConfirmMessage": "Are you sure you want to import data? This will replace ALL current transactions. This action cannot be undone.",
-    "importConfirmMessageFull": "Are you sure you want to import data? This will replace ALL current transactions, budgets, and application settings (API key, AI model, language, theme, currency, custom categories). This action cannot be undone.",
+    "importConfirmMessageFull": "Are you sure you want to import data? This will replace ALL current transactions, budgets, recurring transaction templates, and application settings (API key, AI model, language, theme, currency, custom categories). This action cannot be undone.",
     "importConfirmButton": "Confirm Import",
     "importCancelButton": "Cancel",
     "exportSuccessMessage": "Data exported successfully as {filename}!",
-    "exportSuccessMessageFull": "All data (transactions, budgets, settings) exported as {filename}!",
+    "exportSuccessMessageFull": "All data (transactions, budgets, settings, recurring templates) exported as {filename}!",
     "exportErrorMessage": "Failed to export data. Please try again.",
     "importSuccessMessage": "Data imported successfully!",
     "importSuccessInfoNavigate": "Navigate to the Dashboard to see the changes.",
@@ -115,7 +134,7 @@
       "q2": "Can I use ClarityLedger offline?",
       "a2": "Yes, ClarityLedger is designed as a Progressive Web App (PWA) and can work offline once it has been loaded in your browser.",
       "q3": "How do I backup my data?",
-      "a3": "You can export all your data, including transactions, budgets, and settings, as a JSON file from the 'Data Management' section on the Settings page. You can also import this data back into the app.",
+      "a3": "You can export all your data, including transactions, budgets, recurring transaction templates, and settings, as a JSON file from the 'Data Management' section on the Settings page. You can also import this data back into the app.",
       "q4": "Are the AI Financial Tips free?",
       "a4": "ClarityLedger uses the OpenRouter API to provide AI tips. OpenRouter offers access to various AI models, some ofwhich may have free tiers or require credits. You need to provide your own OpenRouter API key in the Settings. Please check OpenRouter's pricing and terms."
     },
@@ -124,8 +143,9 @@
       "step": "Step {number}",
       "s1": "Navigate to the Dashboard to view your financial overview, including income, expenses, and balance summaries.",
       "s2": "Use the 'Add Transaction' button on the Dashboard to record your income and expenses. Be sure to select the correct type and category.",
-      "s3": "Set monthly budgets for different expense categories in the 'Monthly Budgets' section on the Dashboard to track your spending goals.",
-      "s4": "Visit the Settings page to configure your OpenRouter API key for AI financial tips, manage custom transaction categories, choose your preferred language and theme, and manage your application data (export/import)."
+      "s3": "Set monthly budgets for different expense categories in the 'Monthly Budgets' section on the Dashboard to track your spending goals. You can enable 'rollover' for budgets to carry over surplus/deficit to the next month.",
+      "s4": "Manage recurring income and expenses in the 'Recurring' section to automate transaction entries.",
+      "s5": "Visit the Settings page to configure your OpenRouter API key for AI financial tips, manage custom transaction categories, choose your preferred language and theme, and manage your application data (export/import)."
     },
     "contact": {
       "title": "Contact & Support",
@@ -167,8 +187,12 @@
       "editBudgetButton": "Edit Budget",
       "noBudgetsSet": "No budgets set for this month. Click 'Add Budget' to create one.",
       "spent": "Spent",
+      "target": "Target",
+      "effectiveTarget": "Effective",
+      "rolloverAmount": "Rollover",
       "remaining": "Remaining:",
       "overspentBy": "Overspent by:",
+      "rolloverEnabledTooltip": "Rollover Enabled",
       "editButtonAriaLabel": "Edit budget for {category}",
       "deleteButtonAriaLabel": "Delete budget for {category}",
       "addBudgetModalTitle": "Add New Budget",
@@ -222,6 +246,7 @@
     "targetAmountLabel": "Target Amount",
     "monthYearLabel": "Month (YYYY-MM)",
     "editInfo": "Category and month cannot be changed when editing.",
+    "allowRolloverLabel": "Allow rollover for this category",
     "submitAddButton": "Add Budget",
     "submitUpdateButton": "Update Budget",
     "errors": {
@@ -315,6 +340,42 @@
     "methodStandardOCRDescription": "Fast, local processing using Tesseract.js.",
     "methodAIOCR": "AI OCR",
     "methodAIOCRDescription": "Slower, cloud-based AI for higher accuracy. Requires API key."
+  },
+  "recurringTransactionsPage": {
+    "title": "Manage Recurring Transactions",
+    "addRecurringButton": "Add Recurring",
+    "addModalTitle": "Add Recurring Transaction",
+    "editModalTitle": "Edit Recurring Transaction",
+    "confirmDelete": "Are you sure you want to delete this recurring transaction template? This will not delete any transactions already generated by it.",
+    "form": {
+        "frequencyLabel": "Frequency",
+        "startDateLabel": "Start Date",
+        "endDateLabel": "End Date (Optional)",
+        "isActiveLabel": "Active (auto-generate transactions)",
+        "errors": {
+            "startDateRequired": "Start date is required.",
+            "endDateInvalid": "End date cannot be before start date."
+        }
+    },
+    "frequencies": {
+        "daily": "Daily",
+        "weekly": "Weekly",
+        "monthly": "Monthly",
+        "yearly": "Yearly"
+    },
+    "list": {
+        "noTemplates": "No recurring transaction templates found. Add one to get started!",
+        "frequencyHeader": "Frequency",
+        "nextDueDateHeader": "Next Due",
+        "endDateHeader": "End Date",
+        "lastGeneratedHeader": "Last Generated",
+        "notGeneratedYet": "Never",
+        "noEndDate": "N/A",
+        "editAriaLabel": "Edit",
+        "deleteAriaLabel": "Delete",
+        "activateAriaLabel": "Activate",
+        "deactivateAriaLabel": "Deactivate"
+    }
   },
   "categories": {
     "Food": "Food",

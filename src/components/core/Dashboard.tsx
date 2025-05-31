@@ -1,11 +1,12 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Transaction, TransactionType, PieChartData, Budget } from '../../types';
+import { Transaction, TransactionType, PieChartData, Budget, BudgetWithDetails } from '../../types';
 import { 
   getTransactions
 } from '../../services/transactionService';
 import {
-  getBudgetsForMonth,
+  getBudgetsForMonthWithRollover, // Updated service function
+  getAllBudgets, // To get all budgets for rollover calculation
   addBudget as apiAddBudget,
   updateBudget as apiUpdateBudget,
   deleteBudget as apiDeleteBudget,
@@ -51,13 +52,13 @@ interface MonthlyTrendData {
 const Dashboard: React.FC = () => {
   const { t, language } = useAppContext();
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
-  // Removed isTransactionModalOpen state
   const [isLoadingTransactions, setIsLoadingTransactions] = useState(true);
 
   const [currentMonthYear, setCurrentMonthYear] = useState<string>(new Date().toISOString().slice(0, 7));
-  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [allUserBudgets, setAllUserBudgets] = useState<Budget[]>([]); // Store all budgets
+  const [budgetsForDisplay, setBudgetsForDisplay] = useState<BudgetWithDetails[]>([]); // Budgets with rollover details
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
-  const [editingBudget, setEditingBudget] = useState<Budget | null>(null);
+  const [editingBudget, setEditingBudget] = useState<Budget | null>(null); // Use Budget for form, details are calculated
   const [isLoadingBudgets, setIsLoadingBudgets] = useState(true);
 
   const [allExpenseCategoriesForBudget, setAllExpenseCategoriesForBudget] = useState<{original: string, translated: string}[]>([]);
@@ -82,16 +83,29 @@ const Dashboard: React.FC = () => {
     setAllTransactions(userTransactions);
     setIsLoadingTransactions(false);
 
-    const monthBudgets = getBudgetsForMonth(currentMonthYear);
-    setBudgets(monthBudgets);
+    const userBudgets = getAllBudgets(); // Fetch all budgets
+    setAllUserBudgets(userBudgets);
+    
+    // Calculate budgets with rollover details for the current month
+    const detailedBudgets = getBudgetsForMonthWithRollover(currentMonthYear, userTransactions, userBudgets);
+    setBudgetsForDisplay(detailedBudgets);
     setIsLoadingBudgets(false);
-  }, [currentMonthYear]);
+  }, [currentMonthYear]); // userTransactions removed from dep array, it's fetched inside
 
   useEffect(() => {
     fetchAllData();
   }, [fetchAllData]);
 
-  // handleAddTransaction removed
+  useEffect(() => {
+    // Re-calculate display budgets when month or underlying data changes
+    if (allTransactions.length > 0 || allUserBudgets.length > 0 || !isLoadingTransactions) { // Ensure data is available
+        setIsLoadingBudgets(true);
+        const detailedBudgets = getBudgetsForMonthWithRollover(currentMonthYear, allTransactions, allUserBudgets);
+        setBudgetsForDisplay(detailedBudgets);
+        setIsLoadingBudgets(false);
+    }
+  }, [currentMonthYear, allTransactions, allUserBudgets, isLoadingTransactions]);
+
 
   const { income, expenses, balance } = useMemo(() => {
     let currentIncome = 0;
@@ -125,13 +139,17 @@ const Dashboard: React.FC = () => {
     const now = new Date();
     for (let i = 5; i >= 0; i--) { // Last 6 months including current
       const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthYearStr = date.toISOString().slice(0, 7); // YYYY-MM
-      const monthName = date.toLocaleDateString(language, { month: 'short', year: '2-digit' });
+      
+      const year = date.getFullYear();
+      const monthPadded = (date.getMonth() + 1).toString().padStart(2, '0');
+      const monthYearKey = `${year}-${monthPadded}`; // Use local year and month
+      
+      const monthDisplay = date.toLocaleDateString(language, { month: 'short', year: '2-digit' });
 
       let monthlyIncome = 0;
       let monthlyExpenses = 0;
       allTransactions.forEach(tx => {
-        if (tx.date.startsWith(monthYearStr)) {
+        if (tx.date.startsWith(monthYearKey)) { // Compare with "YYYY-MM" from local date
           if (tx.type === TransactionType.INCOME) {
             monthlyIncome += tx.amount;
           } else {
@@ -139,7 +157,7 @@ const Dashboard: React.FC = () => {
           }
         }
       });
-      data.push({ month: monthName, income: monthlyIncome, expenses: monthlyExpenses });
+      data.push({ month: monthDisplay, income: monthlyIncome, expenses: monthlyExpenses });
     }
     return data;
   }, [allTransactions, language]);
@@ -171,19 +189,10 @@ const Dashboard: React.FC = () => {
     }
   }, [fetchAllData, t]);
 
-  const openBudgetModal = useCallback((budgetToEdit?: Budget) => {
+  const openBudgetModal = useCallback((budgetToEdit?: Budget) => { // Use Budget for form
     setEditingBudget(budgetToEdit || null);
     setIsBudgetModalOpen(true);
   }, []);
-
-  const budgetsWithSpentAmount = useMemo(() => {
-    return budgets.map(budget => {
-      const spent = allTransactions
-        .filter(t => t.type === TransactionType.EXPENSE && t.category === budget.category && t.date.startsWith(budget.monthYear))
-        .reduce((sum, t) => sum + t.amount, 0);
-      return { ...budget, spentAmount: spent };
-    });
-  }, [budgets, allTransactions]);
 
   const currentMonthDisplay = useMemo(() => {
     const date = new Date(currentMonthYear + '-01');
@@ -191,7 +200,7 @@ const Dashboard: React.FC = () => {
   }, [currentMonthYear, language]);
 
 
-  if (isLoadingTransactions || isLoadingBudgets) {
+  if (isLoadingTransactions) { // Only initial transaction load shows full page spinner
     return (
       <div className="flex justify-center items-center min-h-[calc(100vh-12rem)]">
         <Spinner size="lg" color="text-primary" />
@@ -201,17 +210,13 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Add Transaction Button - removed from here */}
-
       <SummaryDisplay income={income} expenses={expenses} balance={balance} />
       
-      {/* New Income/Expense Trend Chart Section */}
       <div className="fintrack-card">
         <h2 className="fintrack-section-title">{t('dashboard.charts.incomeExpenseTrendTitle')}</h2>
         <IncomeExpenseTrendChart data={incomeExpenseTrendData} />
       </div>
 
-      {/* Charts and Budgets Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         <div className="lg:col-span-2 fintrack-card">
             <h2 className="fintrack-section-title">{t('dashboard.expenseBreakdownTitle')}</h2>
@@ -248,15 +253,13 @@ const Dashboard: React.FC = () => {
                 <ChevronRightIcon />
               </Button>
           </div>
-          {isLoadingBudgets ? <div className="flex justify-center py-4"><Spinner color="text-primary"/></div> : <BudgetList budgets={budgetsWithSpentAmount} onEdit={openBudgetModal} onDelete={handleDeleteBudget} />}
+          {isLoadingBudgets ? <div className="flex justify-center py-4"><Spinner color="text-primary"/></div> : <BudgetList budgets={budgetsForDisplay} onEdit={openBudgetModal} onDelete={handleDeleteBudget} />}
         </div>
       </div>
       
       <section aria-labelledby="ai-tip-heading" className="fintrack-card">
         <AiFinancialTip balance={balance} recentTransactionsCount={allTransactions.length} />
       </section>
-
-      {/* TransactionForm Modal removed from here */}
 
       <Modal 
         isOpen={isBudgetModalOpen} 
@@ -266,7 +269,7 @@ const Dashboard: React.FC = () => {
         <BudgetForm
           onSubmit={handleAddOrUpdateBudget}
           initialData={editingBudget || undefined}
-          existingBudgetsForMonth={budgets.filter(b => b.monthYear === (editingBudget?.monthYear || currentMonthYear) && b.id !== editingBudget?.id )}
+          existingBudgetsForMonth={allUserBudgets.filter(b => b.monthYear === (editingBudget?.monthYear || currentMonthYear) && b.id !== editingBudget?.id )}
           availableCategories={allExpenseCategoriesForBudget}
           currentMonthYear={editingBudget?.monthYear || currentMonthYear}
         />

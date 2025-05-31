@@ -24,6 +24,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
   const [category, setCategory] = useState(initialData?.category || '');
   const [targetAmount, setTargetAmount] = useState<string>(initialData?.targetAmount?.toString() || '');
   const [monthYear, setMonthYear] = useState(initialData?.monthYear || currentMonthYear);
+  const [allowRollover, setAllowRollover] = useState<boolean>(initialData?.allowRollover || false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -31,11 +32,13 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
       setCategory(initialData.category);
       setTargetAmount(initialData.targetAmount.toString());
       setMonthYear(initialData.monthYear);
+      setAllowRollover(initialData.allowRollover || false);
     } else {
       // Reset for new budget, default to current month year from props
       setMonthYear(currentMonthYear);
       setCategory(''); // User must select
       setTargetAmount('');
+      setAllowRollover(false);
     }
   }, [initialData, currentMonthYear]);
 
@@ -85,6 +88,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
       category,
       targetAmount: parseFloat(targetAmount),
       monthYear,
+      allowRollover,
     });
   };
 
@@ -136,6 +140,18 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
       />
       {initialData && <p className="text-xs text-gray-500 dark:text-gray-400 -mt-3">{t('budgetForm.editInfo')}</p>}
 
+      <div className="flex items-center">
+        <input
+          id="budget-allowRollover"
+          type="checkbox"
+          checked={allowRollover}
+          onChange={(e) => setAllowRollover(e.target.checked)}
+          className="h-4 w-4 text-primary border-gray-300 dark:border-darkBorder rounded focus:ring-primary dark:bg-darkSurface dark:checked:bg-primary"
+        />
+        <label htmlFor="budget-allowRollover" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+          {t('budgetForm.allowRolloverLabel', {defaultValue: "Allow rollover for this category"})}
+        </label>
+      </div>
 
       <Button type="submit" variant="primary" className="w-full">
         {initialData ? t('budgetForm.submitUpdateButton') : t('budgetForm.submitAddButton')}

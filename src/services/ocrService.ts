@@ -31,8 +31,8 @@ const DATE_PATTERNS = [
     /(?<month>\d{1,2})[.\-/月](?<day>\d{1,2})[.\-/年](?<year>\d{2,4})日?/i, // MM-DD-YYYY, MM/DD/YY
     /(?<day>\d{1,2})[.\-/月](?<month>\d{1,2})[.\-/年](?<year>\d{2,4})日?/i, // DD-MM-YYYY (less common in US, common in EU/Asia)
     /(?<year>\d{4})年(?<month>\d{1,2})月(?<day>\d{1,2})/i, // Chinese specific
-    /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(?<day>\d{1,2}),?\s+(?<year>\d{4})/i, // Month DD, YYYY
-    /(?<day>\d{1,2})\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec),?\s+(?<year>\d{4})/i, // DD Month, YYYY
+    /(?<month_name>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(?<day>\d{1,2}),?\s+(?<year>\d{4})/i, // Month DD, YYYY (Capture month_name)
+    /(?<day>\d{1,2})\s+(?<month_name>Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec),?\s+(?<year>\d{4})/i, // DD Month, YYYY (Capture month_name)
 ];
 
 const MONTH_MAP: { [key: string]: number } = {
@@ -139,15 +139,21 @@ const parseDate = (text: string): string | null => {
     for (const pattern of DATE_PATTERNS) {
         const match = pattern.exec(text);
         if (match && match.groups) {
-            let { day, month, year } = match.groups;
+            let { day, month, year, month_name } = match.groups;
 
             let dayNum = parseInt(day, 10);
-            let monthNum = parseInt(month, 10);
+            let monthNum = parseInt(month, 10); // Will be NaN if 'month' group is undefined or not a number
             let yearNum = parseInt(year, 10);
 
-            if (isNaN(monthNum) && month && MONTH_MAP[month.toLowerCase().substring(0,3)]) {
+            if (isNaN(monthNum) && month_name && MONTH_MAP[month_name.toLowerCase().substring(0,3)]) {
+                monthNum = MONTH_MAP[month_name.toLowerCase().substring(0,3)];
+            } else if (isNaN(monthNum) && month && MONTH_MAP[month.toLowerCase().substring(0,3)]) {
+                 // Fallback for older patterns or if month_name wasn't captured but month (numeric) was intended
+                 // This part is mostly defensive, assuming 'month' group should be numeric.
+                 // The `month_name` check above is more specific for patterns with named months.
                 monthNum = MONTH_MAP[month.toLowerCase().substring(0,3)];
             }
+
 
             if (isNaN(dayNum) || isNaN(monthNum) || isNaN(yearNum)) continue;
 
@@ -220,6 +226,8 @@ const initializeWorker = async (
   // Check if the current worker is usable (initialized with combined languages)
   if (worker && (worker as any).tesseractLang === TESSERACT_LANG_COMBINED && typeof worker.recognize === 'function') {
     try {
+        // Quick test if worker is responsive, e.g., by trying to access a property or a light non-blocking call.
+        // For now, assume if it exists and matches lang, it's fine.
         return worker;
     } catch (e) {
         console.warn("Existing worker seems unresponsive, re-initializing.", e);
@@ -311,6 +319,7 @@ export const recognizeImage = async (
 
 export const terminateWorker = async () => {
   if (workerInitializing) {
+    // Wait for a short period to allow ongoing initialization to complete or fail
     await new Promise(resolve => setTimeout(resolve, 500)); 
   }
   if (worker) {
@@ -321,10 +330,10 @@ export const terminateWorker = async () => {
         console.error("Error terminating Tesseract worker:", error);
     } finally {
         worker = null;
-        workerInitializing = false; 
+        workerInitializing = false; // Reset flag regardless of termination success
     }
   } else {
-     workerInitializing = false; 
+     workerInitializing = false; // Also reset if no worker was found (e.g., init failed before)
   }
 };
 
@@ -370,6 +379,7 @@ export const enhanceOcrWithAI = async (
       imageMimeType = imageFile.type;
     } catch (e) {
       console.error("Error converting image to Base64:", e);
+      // Optionally return error or proceed without image for AI
     }
   }
   
@@ -425,7 +435,7 @@ ${jsonStructureInstruction}`;
         messages: promptMessages,
         max_tokens: 500, 
         temperature: 0.2, 
-        response_format: { type: "json_object" }
+        response_format: { type: "json_object" } // Request JSON output
       }),
     });
 
@@ -434,7 +444,7 @@ ${jsonStructureInstruction}`;
     if (!response.ok) {
       let errorData = {};
       try {
-        errorData = JSON.parse(responseBodyText);
+        errorData = JSON.parse(responseBodyText); // Try to parse error response as JSON
       } catch (e) {
         // console.warn("Response body was not JSON:", responseBodyText);
       }
@@ -451,11 +461,10 @@ ${jsonStructureInstruction}`;
     }
 
     try {
+      // If response_format: { type: "json_object" } is respected, aiTextResponse should be a JSON string.
+      // Some models might still wrap it in markdown, so keep the fence stripping as a fallback.
       let jsonStr = typeof aiTextResponse === 'string' ? aiTextResponse.trim() : JSON.stringify(aiTextResponse);
       
-      // JSON mode output from OpenAI compatible APIs should be a direct JSON string.
-      // No need for ```json``` stripping if response_format: { type: "json_object" } is respected.
-      // However, as a fallback if model doesn't fully respect it:
       const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
       const match = jsonStr.match(fenceRegex);
       if (match && match[2]) {
