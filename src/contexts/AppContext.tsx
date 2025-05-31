@@ -68,9 +68,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       let translationsData: Translations | null = null;
 
       const fetchTranslationsForLang = async (langToFetch: Language): Promise<Translations | null> => {
-        // Vite copies `public` dir contents to the root of `dist`.
-        // So if locales are in `public/locales`, then `index.html` (in `dist`) can fetch `./locales/...`
-        const path = `./locales/${langToFetch}.json`;
+        // Locale files are now served from the root, typically from a 'public' or 'static' folder.
+        const path = `/locales/${langToFetch}.json`; // Changed to root-relative path
         try {
           const response = await fetch(path);
           if (!response.ok) {
