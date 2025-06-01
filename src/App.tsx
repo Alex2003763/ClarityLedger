@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import Dashboard from './components/core/Dashboard';
 import SettingsPage from './components/core/SettingsPage';
@@ -76,7 +77,7 @@ const AppContent: React.FC = () => {
   if (currentPage === 'recurring') pageTitle = t('navbar.recurring', { defaultValue: 'Recurring Transactions' });
 
   const mainContentMarginClass = isMobileView 
-    ? 'ml-0 pb-20' // pb-20 for bottom nav bar (h-16 + padding)
+    ? 'ml-0 pb-24' // pb-24 for taller bottom nav bar (h-20 -> 5rem, pb-24 -> 6rem)
     : (isDesktopSidebarOpen ? 'md:ml-64' : 'md:ml-20');
 
   return (
