@@ -1,9 +1,11 @@
 
-const CACHE_NAME = 'clarityledger-cache-v1.2'; // Increment version for changes
+const CACHE_NAME = 'clarityledger-cache-v1.3'; // Increment version for changes
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json', // Cache the manifest
+  '/src/index.tsx', // Main application script
+  '/src/index.css', // Global CSS file
   // Tailwind CSS from CDN
   'https://cdn.tailwindcss.com',
   // Google Fonts CSS
