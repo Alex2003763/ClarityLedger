@@ -1,11 +1,12 @@
 
-const CACHE_NAME = 'clarityledger-cache-v1.3'; // Increment version for changes
+const CACHE_NAME = 'clarityledger-cache-v1.4'; // Increment version for changes
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/manifest.json', // Cache the manifest
   '/src/index.tsx', // Main application script
   '/src/index.css', // Global CSS file
+  '/favicon.ico', // Add favicon
   // Tailwind CSS from CDN
   'https://cdn.tailwindcss.com',
   // Google Fonts CSS
@@ -123,10 +124,9 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         }).catch(error => {
             console.warn(`Fetch failed for ${request.url}; resource might be unavailable offline.`, error);
-            // For non-essential assets, browser will show its own error.
-            // For essential assets not cached, this will lead to a broken app offline.
-            // Consider returning a generic fallback for specific asset types if needed.
-            // e.g., for images: return caches.match('/placeholder-image.png');
+            // Return a synthetic error response to prevent the TypeError
+            // and provide a clear indication of a network failure.
+            return Response.error(); // This creates a network error Response object
         });
       })
   );
