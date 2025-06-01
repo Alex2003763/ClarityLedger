@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect } from 'react';
 import Dashboard from './components/core/Dashboard';
 import SettingsPage from './components/core/SettingsPage';
@@ -97,9 +98,10 @@ const AppContent: React.FC = () => {
       >
         <TopBar 
             pageTitle={pageTitle} 
-            toggleSidebar={toggleDesktopSidebar} /* This now controls desktop sidebar */
-            isSidebarOpen={isDesktopSidebarOpen} /* For TopBar's icon state */
-            isMobileView={isMobileView} /* To hide hamburger on mobile */
+            toggleSidebar={toggleDesktopSidebar} 
+            isSidebarOpen={isDesktopSidebarOpen} 
+            isMobileView={isMobileView} 
+            onNavigate={handleNavigate} // Pass navigation handler
         />
         <main className="flex-grow p-4 sm:p-6 lg:p-8 overflow-y-auto">
           {currentPage === 'dashboard' && <Dashboard />}

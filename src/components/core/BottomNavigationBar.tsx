@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { useAppContext } from '../../contexts/AppContext';
 
@@ -32,12 +34,13 @@ interface BottomNavigationBarProps {
 const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({ onNavigate, currentPage }) => {
   const { t } = useAppContext();
 
+  // Added "Recurring" and "Reports" back. Settings remains in TopBar for mobile.
   const navItems: { page: PageType; labelKey: string; defaultLabel: string; iconClass: string }[] = [
     { page: 'dashboard', labelKey: 'navbar.dashboard', defaultLabel: 'Dashboard', iconClass: 'fas fa-home' },
     { page: 'transactions', labelKey: 'navbar.transactions', defaultLabel: 'Transactions', iconClass: 'fas fa-exchange-alt' },
+    { page: 'billScan', labelKey: 'navbar.billScan', defaultLabel: 'Scan Bill', iconClass: 'fas fa-camera' },
     { page: 'recurring', labelKey: 'navbar.recurring', defaultLabel: 'Recurring', iconClass: 'fas fa-sync-alt' },
     { page: 'reports', labelKey: 'navbar.reports', defaultLabel: 'Reports', iconClass: 'fas fa-chart-pie' },
-    { page: 'settings', labelKey: 'navbar.settings', defaultLabel: 'Settings', iconClass: 'fas fa-cog' },
   ];
 
   return (

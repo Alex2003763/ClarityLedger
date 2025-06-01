@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Logo } from '../ui/Logo'; 
 import { useAppContext } from '../../contexts/AppContext';
@@ -48,6 +49,17 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPage, isOpen }) =>
         {isOpen && <h1 className="text-xl font-bold text-white truncate">{t('appName')}</h1>}
       </div>
 
+      {/* Settings NavLink - Moved to top corner */}
+      <div className="mb-2">
+        <NavLink
+          onClick={() => onNavigate('settings')}
+          iconClass="fas fa-cog"
+          label={t('navbar.settings')}
+          isActive={currentPage === 'settings'}
+          isSidebarOpen={isOpen}
+        />
+      </div>
+
       <nav className="flex-grow overflow-y-auto custom-scrollbar -mr-2 pr-2"> 
         <NavLink
           onClick={() => onNavigate('dashboard')}
@@ -84,13 +96,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPage, isOpen }) =>
           isActive={currentPage === 'reports'}
           isSidebarOpen={isOpen}
         />
-        <NavLink
-          onClick={() => onNavigate('settings')}
-          iconClass="fas fa-cog"
-          label={t('navbar.settings')}
-          isActive={currentPage === 'settings'}
-          isSidebarOpen={isOpen}
-        />
+        {/* Settings NavLink was removed from here */}
       </nav>
 
       <div className="mt-auto shrink-0">
