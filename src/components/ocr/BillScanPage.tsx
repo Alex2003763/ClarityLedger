@@ -323,7 +323,7 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
                   className="relative cursor-pointer bg-white dark:bg-darkSurface rounded-md font-medium text-primary dark:text-primaryLight hover:text-primaryDark dark:hover:text-sky-300 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 dark:focus-within:ring-offset-darkSurface focus-within:ring-primary"
                 >
                   <span>{t('billScanPage.uploadLabel')}</span>
-                  <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" onChange={handleImageChange} />
+                  <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" capture="environment" onChange={handleImageChange} />
                 </label>
                 <p className="pl-1">{t('billScanPage.dragAndDrop')}</p>
               </div>
