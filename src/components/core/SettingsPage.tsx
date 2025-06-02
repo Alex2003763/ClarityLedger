@@ -81,7 +81,7 @@ const GlobeAltIcon: React.FC<{className?: string}> = ({className}) => (
 );
 const TableCellsIcon: React.FC<{className?: string}> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-5 h-5"}>
-      <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5V7.5c0-1.425.824-2.688 2.006-3.201M3.375 19.5c.024-.07.049-.14.076-.21M19.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125S17.25 4.254 17.25 4.875V7.5m2.25 0V18.375c0 .621-.504 1.125-1.125 1.125M19.5 7.5h-1.5M19.5 7.5c-.024.07-.049.14-.076.21M16.5 7.5h-1.5m-12.75-3.128c1.182.513 2.006 1.776 2.006 3.201V7.5M4.5 7.5h1.5m0 0c.024.07.049.14.076.21M7.5 7.5h1.5m0 0c.024.07.049.14.076.21M10.5 7.5h1.5m0 0c.024.07.049.14.076.21M13.5 7.5h1.5m3.75-3.75c.621 0 1.125.504 1.125 1.125M12.75 4.125c-.621 0-1.125.504-1.125 1.125M12.75 4.125V7.5M12.75 4.125c.024-.07.049-.14.076-.21M9.75 4.125c-.621 0-1.125.504-1.125 1.125M9.75 4.125V7.5M9.75 4.125c.024-.07.049-.14.076-.21M6.75 4.125c-.621 0-1.125.504-1.125 1.125M6.75 4.125V7.5M6.75 4.125c.024-.07.049-.14.076-.21m0 9.75h10.5m-10.5 0V10.5c0-.621.504-1.125 1.125-1.125h8.25c.621 0 1.125.504 1.125 1.125v6.375m-10.5 0c.024.07.049.14.076.21m10.5 0c-.024.07.049.14-.076.21" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 01-1.125-1.125M3.375 19.5V7.5c0-1.425.824-2.688 2.006-3.201M3.375 19.5c.024-.07.049-.14.076-.21M19.5 7.5V4.875c0-.621-.504-1.125-1.125-1.125S17.25 4.254 17.25 4.875V7.5m2.25 0V18.375c0 .621-.504 1.125-1.125 1.125M19.5 7.5h-1.5M19.5 7.5c-.024.07-.049.14-.076.21M16.5 7.5h-1.5m-12.75-3.128c1.182.513 2.006 1.776 2.006 3.201V7.5M4.5 7.5h1.5m0 0c.024.07.049.14.076.21M7.5 7.5h1.5m0 0c.024.07.049.14.076.21M10.5 7.5h1.5m0 0c.024.07.049.14.076.21M13.5 7.5h1.5m3.75-3.75c.621 0 1.125.504 1.125 1.125M12.75 4.125c-.621 0-1.125.504-1.125 1.125M12.75 4.125V7.5M12.75 4.125c.024-.07.049-.14.076-.21M9.75 4.125c-.621 0-1.125.504-1.125 1.125M9.75 4.125V7.5M9.75 4.125c.024-.07.049-.14.076.21M6.75 4.125c-.621 0-1.125.504-1.125 1.125M6.75 4.125V7.5M6.75 4.125c.024-.07.049-.14.076.21m0 9.75h10.5m-10.5 0V10.5c0-.621.504-1.125 1.125-1.125h8.25c.621 0 1.125.504 1.125 1.125v6.375m-10.5 0c.024.07.049.14.076.21m10.5 0c-.024.07.049.14-.076.21" />
     </svg>
 );
 
@@ -226,13 +226,10 @@ const SettingsPage: React.FC = () => {
           } catch (shareError) {
             console.warn('Web Share API error:', shareError);
             if ((shareError as DOMException).name === 'AbortError') {
-              // User cancelled the share. Not an actual error for the app.
               console.log('Share action was cancelled by the user.');
-              // Optionally clear message or set a neutral one if desired
-               setTimeout(() => setMessage(null), 1000); // Clear any previous message quickly
+               setTimeout(() => setMessage(null), 1000);
               return;
             }
-            // If other error with Web Share, log it and fall through to <a> tag method.
             console.warn('Web Share API failed, attempting fallback download.', shareError);
           }
         }
@@ -245,7 +242,7 @@ const SettingsPage: React.FC = () => {
       a.download = filename;
       document.body.appendChild(a);
       a.click();
-      setTimeout(() => { // Add small delay for robustness
+      setTimeout(() => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       }, 100);
@@ -259,7 +256,7 @@ const SettingsPage: React.FC = () => {
     }
   };
 
-  const handleExportTransactionsCSV = () => {
+  const handleExportTransactionsCSV = async () => {
     setMessage(null);
     try {
         const transactions = getTransactions();
@@ -271,13 +268,43 @@ const SettingsPage: React.FC = () => {
         const csvData = convertTransactionsToCSV(transactions);
         const date = new Date().toISOString().split('T')[0];
         const filename = `clarityLedger_transactions_${date}.csv`;
+        const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
+
+        // Try Web Share API first for mobile
+        if (navigator.share && typeof navigator.canShare === 'function') {
+            const file = new File([blob], filename, { type: 'text/csv;charset=utf-8;' });
+            if (navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: t('settingsPage.exportCsvButton'),
+                        text: `ClarityLedger transactions - ${filename}`,
+                    });
+                    setMessage({text: t('settingsPage.exportCsvSuccessMessage', {filename}), type: 'success'});
+                    setTimeout(() => setMessage(null), 5000);
+                    return; // Shared successfully
+                } catch (shareError) {
+                    console.warn('Web Share API error for CSV:', shareError);
+                    if ((shareError as DOMException).name === 'AbortError') {
+                        console.log('CSV Share action was cancelled by the user.');
+                        setTimeout(() => setMessage(null), 1000);
+                        return;
+                    }
+                    console.warn('Web Share API for CSV failed, attempting fallback download.', shareError);
+                }
+            }
+        }
+        
+        // Fallback to direct download
         downloadCSV(csvData, filename);
         setMessage({text: t('settingsPage.exportCsvSuccessMessage', {filename}), type: 'success'});
+        setTimeout(() => setMessage(null), 5000);
+
     } catch (error) {
         console.error("Error exporting transactions to CSV:", error);
         setMessage({ text: t('settingsPage.exportCsvErrorMessage'), type: 'error' });
+        setTimeout(() => setMessage(null), 5000);
     }
-    setTimeout(() => setMessage(null), 5000);
   };
   
   const isValidTransactionItem = (item: any): item is Partial<Transaction> => {
