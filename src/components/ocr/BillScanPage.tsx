@@ -79,7 +79,15 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
     resetStateForNewFile();
     if (file && file.type.startsWith('image/')) {
       setSelectedImage(file);
-      setPreviewUrl(URL.createObjectURL(file));
+      try {
+        const objectURL = URL.createObjectURL(file);
+        setPreviewUrl(objectURL);
+      } catch (error) {
+        console.error("Error creating object URL:", error);
+        setErrorTesseract(t('billScanPage.errorOcrFailed', { message: `Could not create preview: ${(error as Error).message}` }));
+        setSelectedImage(null); 
+        setPreviewUrl(null);
+      }
     } else {
       setSelectedImage(null);
       setPreviewUrl(null);
