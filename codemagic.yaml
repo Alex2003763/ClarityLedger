@@ -14,7 +14,7 @@ workflows:
       node: latest
       xcode: latest
     scripts:
-       - name: 前置設定
+      - name: 前置設定
         script: |
           npx cap init --force --app-id "$APP_ID" --app-name "$APP_NAME" --web-dir "$WEB_DIR"
       - name: 安裝依賴
