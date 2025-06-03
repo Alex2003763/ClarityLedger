@@ -7,20 +7,28 @@ workflows:
       vars:
         XCODE_WORKSPACE: "ClarityLedger.xcworkspace" # 替換為實際專案名稱
         SCHEME: "ClarityLedger" # 替換為 Xcode scheme 名稱
+        WEB_DIR: "dist"  
         BUNDLE_ID: "com.ClarityLedger.app" # 替換為實際 Bundle ID
+        APP_ID: "com.ClarityLedger.app"  # 必填！替換實際 Bundle ID
+        APP_NAME: "ClarityLedger"         # 必填！應用顯示名稱
       node: latest
       xcode: latest
     scripts:
+       - name: 前置設定
+        script: |
+          npx cap init --force --app-id "$APP_ID" --app-name "$APP_NAME" --web-dir "$WEB_DIR"
       - name: 安裝依賴
         script: |
           npm install -g @capacitor/cli
+          npm install @capacitor/core @capacitor/ios  # 明確安裝 iOS 平台
           npm install
       - name: 建置 Web 專案
         script: npm run build
       - name: 設定 iOS 專案
         script: |
-          npx cap add ios
+          npx cap add ios --force  # 強制覆寫現有配置
           npx cap sync ios
+          cp -R ./ios/App/App/ "./ios/App/$APP_NAME/"  # 修正目錄結構
       - name: 生成 IPA
         script: |
           xcodebuild -workspace "$XCODE_WORKSPACE" -scheme "$SCHEME" -configuration Release CODE_SIGN_IDENTITY="iPhone Distribution" PROVISIONING_PROFILE_SPECIFIER="$BUNDLE_ID" -archivePath build/archive.xcarchive archive
