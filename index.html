@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimum-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
   <!-- PWA Manifest -->
   <link rel="manifest" href="/manifest.json">
@@ -18,7 +18,8 @@
   <meta name="apple-mobile-web-app-title" content="ClarityLedger">
   
   <!-- Apple Touch Icon (for Home Screen icon on iOS) -->
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"> 
+  <link rel="apple-touch-icon" href="/software.png"> 
+  <link rel="icon" type="image/png" href="/software.png">
   <!-- Add more apple-touch-startup-image if needed for different resolutions -->
 
   <title>ClarityLedger</title>
@@ -180,6 +181,7 @@
   }
 }
 </script>
+<link rel="stylesheet" href="/index.css">
 </head>
 <body class="antialiased">
   <div id="root"></div>
@@ -197,5 +199,6 @@
       });
     }
   </script>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>
