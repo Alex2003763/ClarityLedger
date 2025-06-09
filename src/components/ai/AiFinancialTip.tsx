@@ -10,11 +10,7 @@ interface AiFinancialTipProps {
   recentTransactionsCount: number;
 }
 
-const LightbulbIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className || "w-6 h-6"}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.355a7.5 7.5 0 0 1-6 0M12 21a7.5 7.5 0 0 0 7.5-7.5H4.5A7.5 7.5 0 0 0 12 21ZM3.75 10.5A2.25 2.25 0 0 0 6 12.75h12A2.25 2.25 0 0 0 15.75 10.5v-2.625A2.25 2.25 0 0 0 13.5 5.625h-3A2.25 2.25 0 0 0 8.25 7.875v2.625Z" />
-  </svg>
-);
+// LightbulbIcon definition removed
 
 const AiFinancialTip: React.FC<AiFinancialTipProps> = ({ balance, recentTransactionsCount }) => {
   const { t, selectedCurrencyCode, selectedCurrencySymbol, language } = useAppContext();
@@ -49,7 +45,7 @@ const AiFinancialTip: React.FC<AiFinancialTipProps> = ({ balance, recentTransact
     <div className="bg-white dark:bg-darkSurface p-6 rounded-xl shadow-lg transition-colors duration-300">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-gray-700 dark:text-gray-200 flex items-center">
-          <LightbulbIcon className="w-7 h-7 text-yellow-400 dark:text-yellow-300 mr-2.5" />
+          <i className="fas fa-brain w-7 h-7 text-accent dark:text-sky-400 mr-2.5"></i>
           {t('aiFinancialTip.title')}
         </h3>
         <Button onClick={fetchTip} disabled={isLoading} size="sm" variant="secondary">

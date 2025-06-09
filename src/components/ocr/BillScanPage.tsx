@@ -1,3 +1,4 @@
+// src/components/ocr/BillScanPage.tsx
 
 import React, { useState, useCallback, ChangeEvent, useEffect, DragEvent } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
@@ -38,7 +39,7 @@ interface BillScanPageProps {
 }
 
 const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions }) => {
-  const { t, language, selectedCurrencySymbol } = useAppContext();
+  const { t, language, selectedCurrencyCode, selectedCurrencySymbol } = useAppContext();
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
@@ -122,14 +123,13 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
     }
     setIsLoadingTesseract(true);
     setErrorTesseract(null);
-    setErrorAI(null); // Clear previous AI errors if any
+    setErrorAI(null); 
     setTesseractOcrResult(null);
-    setAiExtractionResult(null); // Clear previous AI results
+    setAiExtractionResult(null); 
     setProgress(0);
     setStatus(t('billScanPage.statusInitializing'));
 
     try {
-      // Language prop removed from recognizeImage call, OCR service handles combined languages
       const result = await recognizeImage(selectedImage, (p, s) => {
         setProgress(p);
         setStatus(s);
@@ -143,7 +143,7 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
     } finally {
       setIsLoadingTesseract(false);
     }
-  }, [selectedImage, t]); // Language removed from dependencies as it's not directly used here
+  }, [selectedImage, t]);
 
   const handleAiEnhanceAfterTesseract = async () => {
     if (!tesseractOcrResult?.text && !selectedImage) {
@@ -152,11 +152,16 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
     }
     setIsLoadingAI(true);
     setErrorAI(null);
-    setAiExtractionResult(null); // Clear previous AI results if re-enhancing
+    setAiExtractionResult(null); 
 
     try {
-      // Pass Tesseract text and the original image for potentially better AI results
-      const aiResult = await enhanceOcrWithAI(tesseractOcrResult?.text || "", selectedImage || undefined, language);
+      const aiResult = await enhanceOcrWithAI(
+        tesseractOcrResult?.text || "", 
+        selectedImage || undefined, 
+        language,
+        selectedCurrencyCode,
+        selectedCurrencySymbol
+      );
       if (aiResult.error) {
         setErrorAI(aiResult.error);
       } else {
@@ -177,15 +182,20 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
     }
     setIsLoadingAI(true);
     setErrorAI(null);
-    setErrorTesseract(null); // Clear previous Tesseract errors
+    setErrorTesseract(null); 
     setAiExtractionResult(null);
-    setTesseractOcrResult(null); // Clear Tesseract results as we are going direct to AI
+    setTesseractOcrResult(null); 
     setStatus(t('billScanPage.aiProcessing'));
 
 
     try {
-      // For direct AI OCR, rawOcrText can be empty or a placeholder if the model primarily uses the image.
-      const aiResult = await enhanceOcrWithAI("", selectedImage, language); 
+      const aiResult = await enhanceOcrWithAI(
+        "", 
+        selectedImage, 
+        language,
+        selectedCurrencyCode,
+        selectedCurrencySymbol
+        ); 
       if (aiResult.error) {
         setErrorAI(aiResult.error);
          setStatus(t('billScanPage.statusError'));
@@ -216,7 +226,6 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
     let dateVal: string | undefined = new Date().toISOString().split('T')[0];
     let categoryVal: string | undefined = '';
     
-    // Prioritize AI results if available and no error
     if (aiExtractionResult && !aiExtractionResult.error) {
         if (aiExtractionResult.vendor) {
             descriptionText = `${aiExtractionResult.vendor} - ${t('billScanPage.billSuffix')}`;
@@ -225,7 +234,6 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
         dateVal = aiExtractionResult.date ?? dateVal;
         categoryVal = aiExtractionResult.category ?? '';
     } 
-    // Fallback to Tesseract results if AI failed or not used
     else if (tesseractOcrResult) {
         if (tesseractOcrResult.suggestedCategory) {
             descriptionText = `${tesseractOcrResult.suggestedCategory} ${t('billScanPage.billSuffix')} - ${selectedImage?.name || 'bill'}`;
@@ -251,12 +259,12 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
     setIsTransactionModalOpen(false);
     setSelectedImage(null);
     setPreviewUrl(null);
-    resetStateForNewFile(); // Clear all results
+    resetStateForNewFile(); 
     setStatus(t('billScanPage.transactionAddedSuccess')); 
   }, [t]);
   
   const isLoading = isLoadingTesseract || isLoadingAI;
-  const currentError = errorAI || errorTesseract; // Prioritize AI error display
+  const currentError = errorAI || errorTesseract; 
 
 
   return (
@@ -288,7 +296,6 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
           <h2 className="fintrack-section-title flex items-center">
             <UploadIcon className="mr-2 opacity-70" /> {t('billScanPage.uploadTitle')}
           </h2>
-          {/* OCR Method Selection */}
            <div className="mb-6">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 {t('billScanPage.extractionMethodTitle', {defaultValue: 'Extraction Method'})}
@@ -384,7 +391,6 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
           
           {!isLoadingTesseract && !isLoadingAI && (tesseractOcrResult || (aiExtractionResult && !aiExtractionResult.error)) && (
             <div className="space-y-4 animate-fadeIn">
-              {/* AI Enhanced Results */}
               {aiExtractionResult && !aiExtractionResult.error && (
                 <div className="p-4 border border-dashed border-primary dark:border-primaryLight rounded-lg bg-primary/5 dark:bg-primaryLight/10">
                   <h3 className="text-lg font-semibold text-primary dark:text-primaryLight mb-2 flex items-center">
@@ -399,7 +405,6 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
                 </div>
               )}
               
-              {/* Tesseract OCR Results (shown if Tesseract was run and AI not, or AI failed after Tesseract) */}
               {tesseractOcrResult && (ocrMethod === 'tesseract' || (ocrMethod === 'ai' && errorAI)) && (!aiExtractionResult || aiExtractionResult.error) && (
                 <div className={`${(aiExtractionResult?.error && ocrMethod === 'tesseract') ? 'mt-4 pt-4 border-t border-gray-200 dark:border-darkBorder' : ''}`}>
                   <h3 className="text-md font-medium text-lighttext dark:text-darktext mb-1">
@@ -414,7 +419,6 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
                 </div>
               )}
               
-              {/* Enhance with AI button (if Tesseract was run and AI hasn't been run successfully yet) */}
               {ocrMethod === 'tesseract' && tesseractOcrResult && (!aiExtractionResult || aiExtractionResult.error) && (
                 <Button
                   onClick={handleAiEnhanceAfterTesseract}
@@ -437,7 +441,7 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
                   {t('billScanPage.createTransactionButton')}
               </Button>
               
-              {tesseractOcrResult?.text && (ocrMethod === 'tesseract' || (ocrMethod === 'ai' && errorAI && tesseractOcrResult)) && ( // Show Tesseract full text if it was run
+              {tesseractOcrResult?.text && (ocrMethod === 'tesseract' || (ocrMethod === 'ai' && errorAI && tesseractOcrResult)) && ( 
                   <div className="pt-4 mt-4 border-t border-gray-200 dark:border-darkBorder">
                       <h3 className="text-md font-medium text-lighttext dark:text-darktext mb-1">{t('billScanPage.fullText')}</h3>
                       <pre className="text-xs bg-slate-100 dark:bg-slate-800 p-3 rounded-md max-h-60 overflow-auto custom-scrollbar whitespace-pre-wrap break-all">
@@ -445,7 +449,7 @@ const BillScanPage: React.FC<BillScanPageProps> = ({ onNavigateToTransactions })
                       </pre>
                   </div>
               )}
-               {aiExtractionResult?.rawResponse && (ocrMethod === 'ai' && !aiExtractionResult.error) && ( // Show AI raw response for direct AI
+               {aiExtractionResult?.rawResponse && (ocrMethod === 'ai' && !aiExtractionResult.error) && ( 
                     <div className="pt-4 mt-4 border-t border-gray-200 dark:border-darkBorder">
                         <h3 className="text-md font-medium text-lighttext dark:text-darktext mb-1">AI Raw Response:</h3>
                         <pre className="text-xs bg-slate-100 dark:bg-slate-800 p-3 rounded-md max-h-60 overflow-auto custom-scrollbar whitespace-pre-wrap break-all">

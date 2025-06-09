@@ -1,4 +1,5 @@
 
+// src/services/ocrService.ts
 import Tesseract from 'tesseract.js';
 import { TransactionType } from '../types';
 import { Language, LOCAL_STORAGE_OPENROUTER_API_KEY, LOCAL_STORAGE_OCR_OPENROUTER_MODEL, DEFAULT_OCR_OPENROUTER_MODEL, LOCAL_STORAGE_SELECTED_OPENROUTER_MODEL, DEFAULT_OPENROUTER_MODEL } from '../constants';
@@ -220,14 +221,11 @@ let workerInitializing = false;
 const TESSERACT_LANG_COMBINED = 'eng+chi_tra'; // Always use combined for auto-detection
 
 const initializeWorker = async (
-  // appLanguage: Language, // No longer used to select Tesseract language
   onProgress?: (progress: number, status: string) => void
 ): Promise<Tesseract.Worker> => {
-  // Check if the current worker is usable (initialized with combined languages)
   if (worker && (worker as any).tesseractLang === TESSERACT_LANG_COMBINED && typeof worker.recognize === 'function') {
     try {
-        // Quick test if worker is responsive, e.g., by trying to access a property or a light non-blocking call.
-        // For now, assume if it exists and matches lang, it's fine.
+        // Ping worker or check status if possible, for now, assume it's ok if object exists and has methods
         return worker;
     } catch (e) {
         console.warn("Existing worker seems unresponsive, re-initializing.", e);
@@ -237,31 +235,33 @@ const initializeWorker = async (
   }
   
   if (workerInitializing) {
+    // Wait for the ongoing initialization to complete
     return new Promise((resolve, reject) => {
       const interval = setInterval(() => {
         if (!workerInitializing && worker && (worker as any).tesseractLang === TESSERACT_LANG_COMBINED && typeof worker.recognize === 'function') {
           clearInterval(interval);
           resolve(worker);
         } else if (!workerInitializing && (!worker || (worker as any).tesseractLang !== TESSERACT_LANG_COMBINED || typeof worker.recognize !== 'function')) {
+            // Previous initialization might have failed or resulted in a worker for a different language
             clearInterval(interval);
             console.warn("Previous worker initialization might have failed or resulted in an unexpected state. Re-attempting initialization.");
-            worker = null; 
-            initializeWorker(onProgress).then(resolve).catch(reject);
+            worker = null; // Reset worker to force new initialization
+            initializeWorker(onProgress).then(resolve).catch(reject); // Retry initialization
         }
       }, 200);
       setTimeout(() => {
         clearInterval(interval);
-        if (workerInitializing) { 
+        if (workerInitializing) { // Check again, in case it just finished
             console.error("Worker initialization timed out.");
-            workerInitializing = false; 
+            workerInitializing = false; // Reset flag as the attempt is over
             reject(new Error("Worker initialization timed out."));
         }
-      }, 15000); 
+      }, 15000); // 15 seconds timeout for initialization
     });
   }
 
   workerInitializing = true;
-  if (worker) { 
+  if (worker) { // If a worker exists but is not suitable (e.g. wrong language), terminate it
     try {
       await worker.terminate(); 
     } catch (termError) {
@@ -279,7 +279,7 @@ const initializeWorker = async (
         }
       },
     });
-    (newWorker as any).tesseractLang = TESSERACT_LANG_COMBINED; // Store the Tesseract languages for future checks
+    (newWorker as any).tesseractLang = TESSERACT_LANG_COMBINED; // Store language with worker instance for check
     worker = newWorker;
     workerInitializing = false;
     console.log(`Tesseract worker initialized successfully for ${TESSERACT_LANG_COMBINED}.`);
@@ -287,14 +287,13 @@ const initializeWorker = async (
   } catch (error) {
     workerInitializing = false;
     console.error("Failed to initialize Tesseract worker:", error);
-    throw error; 
+    throw error; // Re-throw to be caught by the caller
   }
 };
 
 
 export const recognizeImage = async (
   imageFile: File | string, 
-  // appLanguage: Language, // No longer needed here, worker uses combined
   onProgress?: (progress: number, status: string) => void
 ): Promise<OCRResult> => {
   const currentWorker = await initializeWorker(onProgress);
@@ -309,17 +308,18 @@ export const recognizeImage = async (
     return { text, amount, date, suggestedCategory };
   } catch (error) {
     console.error("Error during OCR processing:", error);
+    // If OCR fails, terminate the worker so it gets re-initialized next time.
     if (worker) {
         await worker.terminate().catch(e => console.warn("Error terminating worker post-OCR-failure:", e));
         worker = null;
     }
-    throw error; 
+    throw error; // Re-throw to be caught by the caller
   }
 };
 
 export const terminateWorker = async () => {
   if (workerInitializing) {
-    // Wait for a short period to allow ongoing initialization to complete or fail
+    // Wait a bit for initialization to potentially finish or timeout
     await new Promise(resolve => setTimeout(resolve, 500)); 
   }
   if (worker) {
@@ -330,28 +330,30 @@ export const terminateWorker = async () => {
         console.error("Error terminating Tesseract worker:", error);
     } finally {
         worker = null;
-        workerInitializing = false; // Reset flag regardless of termination success
+        workerInitializing = false;
     }
   } else {
-     workerInitializing = false; // Also reset if no worker was found (e.g., init failed before)
+     // Ensure the flag is reset even if worker is null (e.g., if initialization failed before worker was assigned)
+     workerInitializing = false;
   }
 };
 
 
-// Helper to convert File to Base64
 const fileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload = () => resolve((reader.result as string).split(',')[1]); // Get only Base64 part
+    reader.onload = () => resolve((reader.result as string).split(',')[1]);
     reader.onerror = error => reject(error);
   });
 };
 
 export const enhanceOcrWithAI = async (
   rawOcrText: string,
-  imageFile?: File, 
-  appLanguage: Language = 'en' // App language still used for AI prompt target language
+  imageFile: File | undefined, 
+  appLanguage: Language = 'en',
+  userCurrencyCode: string,
+  userCurrencySymbol: string
 ): Promise<AIExtractionResult> => {
   const apiKey = localStorage.getItem(LOCAL_STORAGE_OPENROUTER_API_KEY);
   const ocrModelFromStorage = localStorage.getItem(LOCAL_STORAGE_OCR_OPENROUTER_MODEL);
@@ -379,21 +381,82 @@ export const enhanceOcrWithAI = async (
       imageMimeType = imageFile.type;
     } catch (e) {
       console.error("Error converting image to Base64:", e);
-      // Optionally return error or proceed without image for AI
+      // Optionally return an error or proceed without image if base64 conversion fails
     }
   }
   
-  const languageInstruction = appLanguage === 'zh-TW' ? '請以繁體中文進行分析與回答。金額若為新臺幣，請明確標示 TWD 或 NT$。' : 'Analyze and respond in English. If currency is USD, clearly mark it as USD or $.';
+  const languageInstruction = appLanguage === 'zh-TW' ? `請以繁體中文進行分析與回答。` : `Analyze and respond in English.`;
 
-  const jsonStructureInstruction = `Respond ONLY with a valid JSON object containing these fields: "amount" (numeric or null), "date" ("YYYY-MM-DD" or null), "vendor" (string or null), "category" (string from list: Groceries, Utilities, Food, Transport, Shopping, Health, Entertainment, Travel, Tax, Credit Card, Other, or null), "currency" (string like "USD", "TWD", or null).
-Example: {"amount": 123.45, "date": "2023-10-26", "vendor": "SuperMart", "category": "Groceries", "currency": "USD"}`;
+  const systemPromptContent = `You are ClarityAI, an intelligent OCR and data extraction assistant specialized in analyzing financial documents like bills, receipts, and invoices from images. Your primary task is to accurately extract key information and return it in a structured JSON format.
 
+The user's primary currency is ${userCurrencyCode} (symbol: ${userCurrencySymbol}). This is important for interpreting amounts.
 
-  let systemPromptContent = `You are an expert OCR data extraction and categorization AI.
-Analyze the provided data (image and/or text) from a bill or receipt.
-Extract the total amount, date, vendor/store name, a suitable category, and the currency.
+**Extraction Guidelines:**
+
+1.  **Document Understanding:** You are processing an image that is a financial document. Interpret text, layout, and common financial terms accordingly.
+2.  **Target Information:**
+    *   \`amount\`: The primary total amount. Look for labels like 'Total', 'Grand Total', 'Amount Due', '付款總額', '總計', '合計', '應付金額'.
+    *   \`date\`: The transaction date (format as YYYY-MM-DD).
+    *   \`vendor\`: The store or service provider's name (often at the top).
+    *   \`category\`: A relevant spending category (e.g., Groceries, Utilities, Food).
+    *   \`currency\`: The currency code (e.g., ${userCurrencyCode}, EUR, JPY) for the extracted 'amount'.
+
+3.  **Currency Extraction Logic (Strict Order of Preference):**
+    a.  **Primary Goal - User's Currency:** Search the document *first* for an amount explicitly stated in the user's currency (**${userCurrencyCode}**, symbol: **${userCurrencySymbol}**). This might be a secondary display (e.g., in parentheses). If found, extract this amount and set the 'currency' field to **"${userCurrencyCode}"**. This is the highest priority.
+    b.  **Fallback - Explicit Other Currency:** If the user's currency (**${userCurrencyCode}**) is *not* found on the document, but another currency is clearly and unambiguously displayed (e.g., JPY, EUR, USD), extract the amount associated with *that* currency. Set the 'currency' field to the 3-letter code of that found currency.
+    c.  **Last Resort - Assume User's Currency:** If *no currency symbols or codes are clearly identifiable* anywhere on the document, then assume any prominent numerical value you extract as the 'amount' is in the user's currency (**${userCurrencyCode}**). Set the 'currency' field to **"${userCurrencyCode}"**.
+    d.  **Amount Value:** The 'amount' field in your JSON output must be the numerical value **as it appears on the document**, corresponding to the currency identified by the rules above.
+    e.  **NO AI Conversion:** You **must not** perform any currency conversion on the extracted 'amount'. Only report values explicitly present or reasonably inferred as per the hierarchy above.
+
+4.  **Data Quality:**
+    *   If any piece of information is unclear, ambiguous, or not found, use \`null\` for that field in the JSON.
+    *   Prioritize information that appears to be part of a final summary or total on the document.
+
+**JSON Output Format (Strict):**
+You MUST respond ONLY with a single, valid JSON object. Do not include any explanatory text before or after the JSON.
+The JSON object should have the following structure:
+\`\`\`json
+{
+  "amount": <number | null>,
+  "date": "<YYYY-MM-DD | null>",
+  "vendor": "<string | null>",
+  "category": "<string | null>",
+  "currency": "<string | null>"
+}
+\`\`\`
+Accepted category values: "Groceries", "Utilities", "Food", "Transport", "Shopping", "Health", "Entertainment", "Travel", "Tax", "Credit Card", "Other", or \`null\`.
+
+**Examples (user's primary currency is ${userCurrencyCode} (${userCurrencySymbol})):**
+
+*   Document shows: "Total JPY 5,500 (equivalent to ${userCurrencySymbol}307.10 ${userCurrencyCode})".
+    AI Output (prioritizing user's currency if explicitly shown):
+    \`\`\`json
+    {"amount": 307.10, "date": "YYYY-MM-DD", "vendor": "Vendor Name", "category": "SomeCategory", "currency": "${userCurrencyCode}"}
+    \`\`\`
+
+*   Document shows: "Price: €50.00". (User's currency ${userCurrencyCode} is not mentioned).
+    AI Output (falling back to explicitly shown foreign currency):
+    \`\`\`json
+    {"amount": 50.00, "date": "YYYY-MM-DD", "vendor": "Vendor Name", "category": "SomeCategory", "currency": "EUR"}
+    \`\`\`
+
+*   Document shows: "Amount: 120.00" (no currency symbols or codes).
+    AI Output (assuming user's currency as last resort):
+    \`\`\`json
+    {"amount": 120.00, "date": "YYYY-MM-DD", "vendor": "Vendor Name", "category": "SomeCategory", "currency": "${userCurrencyCode}"}
+    \`\`\`
+
+*   Document shows: "Payment Due: ${userCurrencySymbol}75.50 ${userCurrencyCode}".
+    AI Output (user's currency is explicitly shown and primary):
+    \`\`\`json
+    {"amount": 75.50, "date": "YYYY-MM-DD", "vendor": "Vendor Name", "category": "SomeCategory", "currency": "${userCurrencyCode}"}
+    \`\`\`
+
+**Language for Analysis and Response:**
 ${languageInstruction}
-${jsonStructureInstruction}`;
+
+Begin analysis.
+`;
 
   const userMessageContent: any[] = [];
 
@@ -406,12 +469,12 @@ ${jsonStructureInstruction}`;
     });
   }
   
-  let textContentForUserMessage = "Analyze the provided data.\n";
+  let textContentForUserMessage = "Please analyze the provided data from the bill/receipt.\n";
   if (rawOcrText && rawOcrText.trim() !== "") {
-    textContentForUserMessage += `Prioritize information from the image if available, but use the OCR text as a strong reference:\nOCR Text:\n${rawOcrText}`;
-  } else if (userMessageContent.length > 0) { // Image is present
-     textContentForUserMessage = "Analyze the provided image from a bill or receipt.";
-  } else { // Neither image nor text, which shouldn't happen if validation is correct upstream
+    textContentForUserMessage += `If an image is also provided, prioritize information from the image. Use the following OCR text as a strong reference or if the image is absent/unclear:\n\nOCR Text:\n---\n${rawOcrText}\n---`;
+  } else if (userMessageContent.length > 0) { // This means an image was added
+     textContentForUserMessage = "Please analyze the provided image of a bill or receipt.";
+  } else { // No image and no OCR text
      return { error: "No image or text provided for AI analysis." };
   }
   userMessageContent.push({ type: "text", text: textContentForUserMessage });
@@ -434,17 +497,17 @@ ${jsonStructureInstruction}`;
         model: modelToUse,
         messages: promptMessages,
         max_tokens: 500, 
-        temperature: 0.2, 
-        response_format: { type: "json_object" } // Request JSON output
+        temperature: 0.1, // Reduced temperature for more deterministic output
+        response_format: { type: "json_object" } 
       }),
     });
 
-    const responseBodyText = await response.text(); // Read body once
+    const responseBodyText = await response.text(); 
 
     if (!response.ok) {
       let errorData = {};
       try {
-        errorData = JSON.parse(responseBodyText); // Try to parse error response as JSON
+        errorData = JSON.parse(responseBodyText); 
       } catch (e) {
         // console.warn("Response body was not JSON:", responseBodyText);
       }
@@ -453,7 +516,7 @@ ${jsonStructureInstruction}`;
       return { error: `AI extraction failed: ${response.status} ${finalErrorData?.error?.message || response.statusText}`, rawResponse: responseBodyText };
     }
 
-    const data = JSON.parse(responseBodyText); // Parse the already read text
+    const data = JSON.parse(responseBodyText); 
     const aiTextResponse = data.choices?.[0]?.message?.content;
 
     if (!aiTextResponse) {
@@ -461,8 +524,6 @@ ${jsonStructureInstruction}`;
     }
 
     try {
-      // If response_format: { type: "json_object" } is respected, aiTextResponse should be a JSON string.
-      // Some models might still wrap it in markdown, so keep the fence stripping as a fallback.
       let jsonStr = typeof aiTextResponse === 'string' ? aiTextResponse.trim() : JSON.stringify(aiTextResponse);
       
       const fenceRegex = /^```(\w*)?\s*\n?(.*?)\n?\s*```$/s;
