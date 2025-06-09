@@ -1,6 +1,6 @@
 # ClarityLedger
 
-"ClarityLedger is an intuitive, open-source accounting tool designed for freelancers and small businesses to effortlessly track expenses, income, and financial health. Simplify your finances with clean visuals and automated reporting—no accounting degree required!"
+"ClarityLedger is a lightweight, open-source personal finance tool for effortless expense tracking and budgeting—built for simplicity and user control."
 
 ## Table of Contents
 
