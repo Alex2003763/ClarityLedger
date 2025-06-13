@@ -29,12 +29,13 @@ interface AppContextType {
 export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 // Define translations type
-type Translations = Record<string, string | Record<string, string>>;
+type Translations = Record<string, string | Record<string, any>>;
 
 // Basic fallback translations for offline use
 const FALLBACK_TRANSLATIONS: Record<Language, Translations> = {
   'en': {
     appName: 'ClarityLedger',
+    footer: '© {year} ClarityLedger. Manage your finances with clarity.',
     navbar: {
       dashboard: 'Dashboard',
       settings: 'Settings',
@@ -43,21 +44,81 @@ const FALLBACK_TRANSLATIONS: Record<Language, Translations> = {
       billScan: 'Scan Bill',
       recurring: 'Recurring'
     },
+    sidebar: {
+      helpCenter: 'Help Center'
+    },
+    topbar: {
+      welcomeMessage: 'Manage Your Finances',
+      openSidebar: 'Open sidebar',
+      closeSidebar: 'Close sidebar'
+    },
     dashboard: {
       loading: 'Loading dashboard data...',
       transactionsTitle: 'Transactions',
       addTransactionButton: 'Add Transaction',
-      noTransactions: 'No transactions yet. Add one to get started!'
+      expenseBreakdownTitle: 'Expense Breakdown',
+      noExpensesForChart: 'No expenses recorded yet to show a chart.',
+      noTransactions: 'No transactions yet. Add one to get started!',
+      confirmDeleteTransaction: 'Are you sure you want to delete this transaction?',
+      budgets: {
+        title: 'Monthly Budgets',
+        addBudgetButton: 'Add Budget',
+        noBudgetsSet: 'No budgets set for this month. Click Add Budget to create one.'
+      },
+      addTransactionModalTitle: 'Add New Transaction'
     },
     settingsPage: {
       title: 'Settings',
       languageLabel: 'Language',
+      darkModeLabel: 'Dark Mode',
       english: 'English',
-      traditionalChinese: '繁體中文'
+      traditionalChinese: '繁體中文',
+      switchToLightMode: 'Switch to Light Mode',
+      switchToDarkMode: 'Switch to Dark Mode'
+    },
+    transactionForm: {
+      modalTitle: 'Add New Transaction',
+      descriptionLabel: 'Description',
+      descriptionPlaceholder: 'e.g., Groceries, Salary',
+      amountLabel: 'Amount',
+      amountPlaceholder: '0.00',
+      typeLabel: 'Type',
+      expenseButton: 'Expense',
+      incomeButton: 'Income',
+      categoryLabel: 'Category',
+      selectCategoryPlaceholder: 'Select a category...',
+      dateLabel: 'Date',
+      submitAddButton: 'Add Transaction',
+      submitUpdateButton: 'Update Transaction'
+    },
+    transactionTable: {
+      category: 'Category',
+      description: 'Description',
+      date: 'Date',
+      amount: 'Amount',
+      actions: 'Actions'
+    },
+    categories: {
+      Food: 'Food',
+      Groceries: 'Groceries',
+      Transport: 'Transport',
+      Utilities: 'Utilities',
+      Housing: 'Housing',
+      Entertainment: 'Entertainment',
+      Health: 'Health',
+      Shopping: 'Shopping',
+      Education: 'Education',
+      Travel: 'Travel',
+      Other: 'Other',
+      Salary: 'Salary',
+      Bonus: 'Bonus',
+      Investment: 'Investment',
+      Gift: 'Gift'
     }
   },
   'zh-TW': {
     appName: 'ClarityLedger',
+    footer: '© {year} ClarityLedger。清晰管理您的財務。',
     navbar: {
       dashboard: '儀表板',
       settings: '設定',
@@ -66,17 +127,76 @@ const FALLBACK_TRANSLATIONS: Record<Language, Translations> = {
       billScan: '掃描帳單',
       recurring: '週期性交易'
     },
+    sidebar: {
+      helpCenter: '幫助中心'
+    },
+    topbar: {
+      welcomeMessage: '管理您的財務',
+      openSidebar: '開啟側邊欄',
+      closeSidebar: '關閉側邊欄'
+    },
     dashboard: {
       loading: '正在載入儀表板資料...',
       transactionsTitle: '交易記錄',
       addTransactionButton: '新增交易',
-      noTransactions: '尚無交易記錄。新增一筆開始吧！'
+      expenseBreakdownTitle: '支出分析',
+      noExpensesForChart: '尚無支出記錄可顯示圖表。',
+      noTransactions: '尚無交易記錄。新增一筆開始吧！',
+      confirmDeleteTransaction: '您確定要刪除此交易嗎？',
+      budgets: {
+        title: '每月預算',
+        addBudgetButton: '新增預算',
+        noBudgetsSet: '本月尚未設定預算。點擊新增預算以建立。'
+      },
+      addTransactionModalTitle: '新增交易'
     },
     settingsPage: {
       title: '設定',
       languageLabel: '語言',
+      darkModeLabel: '深色模式',
       english: 'English',
-      traditionalChinese: '繁體中文'
+      traditionalChinese: '繁體中文',
+      switchToLightMode: '切換到淺色模式',
+      switchToDarkMode: '切換到深色模式'
+    },
+    transactionForm: {
+      modalTitle: '新增交易',
+      descriptionLabel: '描述',
+      descriptionPlaceholder: '例如：雜貨、薪水',
+      amountLabel: '金額',
+      amountPlaceholder: '0.00',
+      typeLabel: '類型',
+      expenseButton: '支出',
+      incomeButton: '收入',
+      categoryLabel: '類別',
+      selectCategoryPlaceholder: '選擇一個類別...',
+      dateLabel: '日期',
+      submitAddButton: '新增交易',
+      submitUpdateButton: '更新交易'
+    },
+    transactionTable: {
+      category: '類別',
+      description: '描述',
+      date: '日期',
+      amount: '金額',
+      actions: '動作'
+    },
+    categories: {
+      Food: '食物',
+      Groceries: '雜貨',
+      Transport: '交通',
+      Utilities: '水電瓦斯',
+      Housing: '住房',
+      Entertainment: '娛樂',
+      Health: '健康',
+      Shopping: '購物',
+      Education: '教育',
+      Travel: '旅遊',
+      Other: '其他',
+      Salary: '薪水',
+      Bonus: '獎金',
+      Investment: '投資',
+      Gift: '禮物'
     }
   }
 };
@@ -187,10 +307,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const t = useCallback((key: string, replacements?: Record<string, string | number>): string => {
     const keys = key.split('.');
-    let current: string | Translations | undefined = translations;
+    let current: any = translations;
     for (const k of keys) {
       if (typeof current === 'object' && current !== null && k in current) {
-        current = (current as Record<string, string | Translations>)[k];
+        current = current[k];
       } else {
         return key;
       }
