@@ -3,14 +3,15 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import Dashboard from './components/core/Dashboard';
 import SettingsPage from './components/core/SettingsPage';
-import Sidebar from './components/core/Sidebar'; 
-import TopBar from './components/core/TopBar';   
-import HelpCenterPage from './components/core/HelpCenterPage'; 
-import TransactionsPage from './components/core/TransactionsPage'; 
-import ReportsPage from './components/core/ReportsPage'; 
+import Sidebar from './components/core/Sidebar';
+import TopBar from './components/core/TopBar';
+import HelpCenterPage from './components/core/HelpCenterPage';
+import TransactionsPage from './components/core/TransactionsPage';
+import ReportsPage from './components/core/ReportsPage';
 import BillScanPage from './components/ocr/BillScanPage';
 import RecurringTransactionsPage from './components/core/RecurringTransactionsPage';
 import BottomNavigationBar from './components/core/BottomNavigationBar'; // New Bottom Nav
+import UpdatePrompt from './components/ui/UpdatePrompt';
 import { AppProvider, useAppContext } from './contexts/AppContext';
 import { processRecurringTransactions } from './services/recurringTransactionService';
 import { LAST_RECURRING_PROCESSING_TIME_KEY } from './constants';
@@ -117,6 +118,7 @@ const AppContent: React.FC = () => {
         </footer>
       </div>
       {isMobileView && <BottomNavigationBar onNavigate={handleNavigate} currentPage={currentPage} />}
+      <UpdatePrompt />
     </div>
   );
 };
