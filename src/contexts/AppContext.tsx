@@ -22,6 +22,7 @@ interface AppContextType {
   setSelectedCurrencyCode: (code: string) => void;
   selectedCurrencySymbol: string;
   formatCurrency: (amount: number) => string;
+  isTranslationsLoading: boolean;
 }
 
 // Create the context with a default undefined value
@@ -29,6 +30,56 @@ export const AppContext = createContext<AppContextType | undefined>(undefined);
 
 // Define translations type
 type Translations = Record<string, string | Record<string, string>>;
+
+// Basic fallback translations for offline use
+const FALLBACK_TRANSLATIONS: Record<Language, Translations> = {
+  'en': {
+    appName: 'ClarityLedger',
+    navbar: {
+      dashboard: 'Dashboard',
+      settings: 'Settings',
+      transactions: 'Transactions',
+      reports: 'Reports',
+      billScan: 'Scan Bill',
+      recurring: 'Recurring'
+    },
+    dashboard: {
+      loading: 'Loading dashboard data...',
+      transactionsTitle: 'Transactions',
+      addTransactionButton: 'Add Transaction',
+      noTransactions: 'No transactions yet. Add one to get started!'
+    },
+    settingsPage: {
+      title: 'Settings',
+      languageLabel: 'Language',
+      english: 'English',
+      traditionalChinese: '繁體中文'
+    }
+  },
+  'zh-TW': {
+    appName: 'ClarityLedger',
+    navbar: {
+      dashboard: '儀表板',
+      settings: '設定',
+      transactions: '交易紀錄',
+      reports: '報告',
+      billScan: '掃描帳單',
+      recurring: '週期性交易'
+    },
+    dashboard: {
+      loading: '正在載入儀表板資料...',
+      transactionsTitle: '交易記錄',
+      addTransactionButton: '新增交易',
+      noTransactions: '尚無交易記錄。新增一筆開始吧！'
+    },
+    settingsPage: {
+      title: '設定',
+      languageLabel: '語言',
+      english: 'English',
+      traditionalChinese: '繁體中文'
+    }
+  }
+};
 
 interface AppProviderProps {
   children: React.ReactNode;
@@ -49,6 +100,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   });
 
   const [translations, setTranslations] = useState<Translations>({});
+  const [isTranslationsLoading, setIsTranslationsLoading] = useState<boolean>(true);
 
   const [selectedCurrencyCode, setSelectedCurrencyState] = useState<string>(() => {
     const storedCurrency = localStorage.getItem(LOCAL_STORAGE_SELECTED_CURRENCY_KEY);
@@ -64,6 +116,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const loadTranslations = async () => {
+      setIsTranslationsLoading(true);
       let effectiveLanguage = language;
       let translationsData: Translations | null = null;
 
@@ -81,6 +134,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
           return await response.json();
         } catch (error) {
           console.error(`Network or other error fetching translations for ${langToFetch} from ${path}:`, error);
+          // Check if we're offline and return fallback translations
+          if (!navigator.onLine || error instanceof TypeError) {
+            console.warn(`Using fallback translations for ${langToFetch} due to network error (possibly offline).`);
+            return FALLBACK_TRANSLATIONS[langToFetch] || FALLBACK_TRANSLATIONS[DEFAULT_LANGUAGE];
+          }
           return null;
         }
       };
@@ -93,14 +151,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         effectiveLanguage = DEFAULT_LANGUAGE;
         translationsData = await fetchTranslationsForLang(DEFAULT_LANGUAGE);
         if (!translationsData) {
-            console.error(`CRITICAL: Failed to load even default (${DEFAULT_LANGUAGE}) translations after failing for ${previousEffectiveLanguage}. Setting empty translations.`);
-            setTranslations({});
+            console.error(`CRITICAL: Failed to load even default (${DEFAULT_LANGUAGE}) translations after failing for ${previousEffectiveLanguage}. Using embedded fallback translations.`);
+            // Use embedded fallback translations as last resort
+            const fallbackLang = previousEffectiveLanguage in FALLBACK_TRANSLATIONS ? previousEffectiveLanguage : DEFAULT_LANGUAGE;
+            setTranslations(FALLBACK_TRANSLATIONS[fallbackLang] || FALLBACK_TRANSLATIONS[DEFAULT_LANGUAGE]);
         } else {
             setTranslations(translationsData);
         }
       } else {
         setTranslations(translationsData);
       }
+      setIsTranslationsLoading(false);
     };
 
     loadTranslations();
@@ -194,7 +255,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     selectedCurrencyCode,
     setSelectedCurrencyCode,
     selectedCurrencySymbol,
-    formatCurrency
+    formatCurrency,
+    isTranslationsLoading
   };
 
   return (
