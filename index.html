@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <!-- or default, black -->
   <meta name="apple-mobile-web-app-title" content="ClarityLedger">
-  
+  <meta name="google-site-verification" content="4VCsdML7P63Xzag0y-Ht1uUkN0bnP7kQ5pgRYobMkt0" />
   <!-- Apple Touch Icon (for Home Screen icon on iOS) -->
   <link rel="apple-touch-icon" href="/software.png"> 
   <link rel="icon" type="image/png" href="/software.png">
@@ -30,39 +30,39 @@
       theme: {
         extend: {
           colors: {
-            primary: '#4361ee', // FinTrack primary
-            secondary: '#3f37c9', // FinTrack secondary (used for sidebar gradient)
-            accent: '#4895ef', // FinTrack accent
-            success: '#4caf50',
-            danger: '#f44336',
-            warning: '#ff9800',
+            primary: '#4A90E2', // A slightly softer, modern blue
+            secondary: '#50E3C2', // A vibrant, modern teal for accents
+            accent: '#F5A623', // A warm, inviting orange
+            success: '#7ED321', // A fresh, vibrant green
+            danger: '#D0021B', // A strong, clear red
+            warning: '#F8E71C', // A bright, noticeable yellow
             
-            lightbg: '#f5f7fb', // FinTrack light page background
-            darkbg: '#111827',  // Custom dark page background (e.g., gray-900)
+            lightbg: '#F7F9FC', // A very light, clean gray
+            darkbg: '#1C1C1E',  // A deep, near-black for dark mode
             
-            lighttext: '#1e293b', // FinTrack dark text (used on light backgrounds)
-            darktext: '#f5f7fb',   // FinTrack light text (used on dark backgrounds)
+            lighttext: '#333333', // A dark gray for better readability
+            darktext: '#E5E5E7',   // A light gray for dark mode text
             
-            contentBg: '#ffffff', // FinTrack card background (light mode)
-            darkContentBg: '#1e293b', // FinTrack card background (dark mode) - slate-800
+            contentBg: '#FFFFFF', // Pure white for cards in light mode
+            darkContentBg: '#2C2C2E', // A slightly lighter dark gray for cards
             
-            grayText: '#94a3b8', // FinTrack gray text
+            grayText: '#8E8E93', // A neutral gray for secondary text
 
-            // For existing components that might use primary-light/dark shades
-            primaryLight: '#4895ef', // Lighter shade of primary
-            primaryDark: '#3f37c9',  // Darker shade of primary
+            // Shades for gradients and hovers
+            primaryLight: '#87BFFF',
+            primaryDark: '#3A75C4',
             
             // Dark mode specific surface colors
-            darkSurface: '#1f2937', // gray-800 for cards/modals in dark mode (can be same as darkContentBg)
-            darkBorder: '#374151', // gray-700 for borders in dark mode
+            darkSurface: '#3A3A3C', // A medium dark gray for surfaces
+            darkBorder: '#4A4A4A', // A clearer border color for dark mode
           },
           fontFamily: {
-            sans: ['Poppins', 'Inter', 'sans-serif'], // Add Poppins as primary
+            sans: ['Inter', 'sans-serif'], // Using Inter for a clean, modern look
           },
           boxShadow: {
-            'main': 'rgba(99, 99, 99, 0.1) 0px 2px 8px 0px;', // FinTrack shadow
-            'card-hover': 'rgba(99, 99, 99, 0.15) 0px 4px 12px 0px;',
-            'top-nav-bar': '0 -2px 10px rgba(0, 0, 0, 0.07)', // Shadow for bottom nav bar
+            'main': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)', // A softer, more modern shadow
+            'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            'top-nav-bar': '0 -2px 10px rgba(0, 0, 0, 0.05)', // A more subtle shadow
           },
           keyframes: {
             fadeIn: {
@@ -84,7 +84,7 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style type="text/tailwindcss">
     /* Apply Tailwind base, components, and utilities */
@@ -95,8 +95,8 @@
     /* Base layer for global element styling like body, html, #root */
     @layer base {
       body { 
-        font-family: 'Poppins', 'Inter', sans-serif; 
-        @apply bg-lightbg text-lighttext;
+        font-family: 'Inter', sans-serif;
+        @apply bg-lightbg text-lighttext antialiased; /* Added antialiasing for smoother fonts */
         transition: background-color 0.3s ease, color 0.3s ease;
       }
       .dark body {
@@ -115,12 +115,12 @@
     @layer components {
       /* General Card Styling */
       .fintrack-card {
-        @apply bg-contentBg dark:bg-darkContentBg rounded-2xl p-4 sm:p-6 shadow-main transition-shadow duration-300;
+        @apply bg-contentBg dark:bg-darkContentBg rounded-xl p-4 sm:p-6 shadow-main transition-all duration-300 hover:shadow-card-hover;
       }
 
       /* General Section Title */
       .fintrack-section-title {
-        @apply text-lg sm:text-xl font-semibold text-lighttext mb-4; /* Base styles */
+        @apply text-lg sm:text-xl font-semibold text-lighttext mb-4;
       }
       .dark .fintrack-section-title { /* Explicit dark mode styling */
         @apply text-darktext;

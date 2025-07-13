@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'clarityledger-cache-v1.4'; // Increment version for changes
+const CACHE_NAME = 'clarityledger-cache-v1.5'; // Increment version for translation fixes
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -18,7 +18,7 @@ const ASSETS_TO_CACHE = [
   'https://esm.sh/react-dom@^19.1.0',
   'https://esm.sh/recharts@^2.15.3',
   'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js',
-  // Locale files
+  // Locale files - these should match the actual URL paths
   '/locales/en.json',
   '/locales/zh-TW.json',
   // Icons (referenced in manifest)

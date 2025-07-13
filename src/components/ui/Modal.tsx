@@ -37,23 +37,23 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 
   const backdropBaseClasses = "fixed inset-0 z-50 flex items-center justify-center bg-black p-4 transition-opacity duration-300 ease-in-out";
   const backdropAnimatedClasses = isMounted ? 'bg-opacity-50 dark:bg-opacity-70' : 'bg-opacity-0';
 
-  const contentBaseClasses = `bg-white dark:bg-darkSurface rounded-lg shadow-xl flex flex-col w-full ${sizeClasses[size]} transform transition-all duration-300 ease-in-out`;
+  const contentBaseClasses = `bg-contentBg dark:bg-darkContentBg rounded-xl shadow-xl flex flex-col w-full ${sizeClasses[size]} transform transition-all duration-300 ease-in-out`;
   const contentAnimatedClasses = isMounted ? 'opacity-100 scale-100' : 'opacity-0 scale-95';
 
   return (
-    <div 
+    <div
       className={`${backdropBaseClasses} ${backdropAnimatedClasses}`}
       onClick={onClose}
     >
-      <div 
+      <div
         className={`${contentBaseClasses} ${contentAnimatedClasses}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex justify-between items-center p-6 border-b border-gray-200 dark:border-darkBorder">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
+        <div className="flex justify-between items-center p-5 border-b border-gray-200 dark:border-darkBorder">
+          <h2 className="text-lg font-semibold text-lighttext dark:text-darktext">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            className="p-1 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-500/10 dark:hover:bg-gray-500/20 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
             aria-label="Close modal"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

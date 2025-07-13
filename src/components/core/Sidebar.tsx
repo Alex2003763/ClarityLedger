@@ -22,9 +22,12 @@ const NavLink: React.FC<{
   <a
     href="#"
     onClick={(e) => { e.preventDefault(); onClick(); }}
-    className={`flex items-center py-3 px-4 my-1 rounded-lg hover:bg-white/10 hover:text-white transition-all duration-200 ease-in-out
-                ${isActive ? 'bg-white/20 text-white font-semibold shadow-md' : 'text-gray-300'}
-                ${!isSidebarOpen ? 'justify-center' : ''}`} 
+    className={`flex items-center py-3 px-4 my-1 rounded-xl
+                hover:bg-white/20 dark:hover:bg-white/30
+                hover:text-white transition-all duration-300 ease-out
+                transform hover:scale-[1.02] active:scale-[0.98]
+                ${isActive ? 'bg-white/30 dark:bg-white/40 text-white font-semibold shadow-sm' : 'text-gray-200 dark:text-gray-300'}
+                ${!isSidebarOpen ? 'justify-center' : ''}`}
     title={!isSidebarOpen ? label : undefined} 
   >
     <i className={`${iconClass} text-lg ${isSidebarOpen ? 'mr-3' : 'mr-0'} w-5 text-center`}></i>
@@ -39,30 +42,23 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPage, isOpen }) =>
   // On smaller screens (<md), it's not rendered (handled by App.tsx).
   return (
     <aside 
-      className={`fixed top-0 left-0 h-full bg-gradient-to-b from-secondary to-primary text-white 
-                 p-4 flex-col z-40 transition-all duration-300 ease-in-out hidden md:flex
-                 ${isOpen ? 'w-64' : 'w-20'} 
-                 shadow-xl`} // shadow always on desktop
+      className={`fixed top-0 left-0 h-full
+                bg-gradient-to-br from-primaryDark via-primary to-primaryLight
+                dark:from-primaryDark/90 dark:via-primary/80 dark:to-primaryLight/70
+                text-white
+                p-4 flex-col z-40 transition-all duration-300 ease-in-out hidden md:flex
+                ${isOpen ? 'w-64' : 'w-20'}
+                shadow-lg hover:shadow-xl transition-shadow`}
     >
-      <div className={`flex items-center shrink-0 mb-6 h-12 ${isOpen ? 'justify-start' : 'justify-center'}`}>
-         <Logo className={`h-8 w-8 text-white ${isOpen ? 'mr-2.5' : 'mr-0'}`} isSidebarOpen={isOpen} />
-        {isOpen && <h1 className="text-xl font-bold text-white truncate">{t('appName')}</h1>}
+      <div className={`flex items-center shrink-0 mb-8 h-12 ${isOpen ? 'justify-start' : 'justify-center'}`}>
+         <Logo className={`h-9 w-9 text-white ${isOpen ? 'mr-3' : 'mr-0'}`} isSidebarOpen={isOpen} />
+        {isOpen && <h1 className="text-2xl font-bold text-white truncate tracking-tight">{t('appName')}</h1>}
       </div>
 
-      {/* Settings NavLink - Moved to top corner */}
-      <div className="mb-2">
-        <NavLink
-          onClick={() => onNavigate('settings')}
-          iconClass="fas fa-cog"
-          label={t('navbar.settings')}
-          isActive={currentPage === 'settings'}
-          isSidebarOpen={isOpen}
-        />
-      </div>
-
-      <nav className="flex-grow overflow-y-auto custom-scrollbar -mr-2 pr-2"> 
-        <NavLink
-          onClick={() => onNavigate('dashboard')}
+      <nav className="flex-grow flex flex-col">
+        <div className="flex-grow overflow-y-auto custom-scrollbar -mr-2 pr-2">
+            <NavLink
+              onClick={() => onNavigate('dashboard')}
           iconClass="fas fa-home"
           label={t('navbar.dashboard')}
           isActive={currentPage === 'dashboard'}
@@ -96,18 +92,25 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPage, isOpen }) =>
           isActive={currentPage === 'reports'}
           isSidebarOpen={isOpen}
         />
-        {/* Settings NavLink was removed from here */}
+        </div>
+        
+        <div className="mt-auto shrink-0 pt-4 border-t border-white/20 dark:border-white/30">
+            <NavLink
+                onClick={() => onNavigate('help')}
+                iconClass="fas fa-question-circle"
+                label={t('sidebar.helpCenter', {defaultValue: "Help Center"})}
+                isActive={currentPage === 'help'}
+                isSidebarOpen={isOpen}
+            />
+            <NavLink
+              onClick={() => onNavigate('settings')}
+              iconClass="fas fa-cog"
+              label={t('navbar.settings')}
+              isActive={currentPage === 'settings'}
+              isSidebarOpen={isOpen}
+            />
+        </div>
       </nav>
-
-      <div className="mt-auto shrink-0">
-        <NavLink
-            onClick={() => onNavigate('help')}
-            iconClass="fas fa-question-circle"
-            label={t('sidebar.helpCenter', {defaultValue: "Help Center"})}
-            isActive={currentPage === 'help'}
-            isSidebarOpen={isOpen}
-        />
-      </div>
     </aside>
   );
 };

@@ -18,20 +18,20 @@ const TopBar: React.FC<TopBarProps> = ({ pageTitle, toggleSidebar, isSidebarOpen
   const desktopIconClass = isSidebarOpen ? 'fa-chevron-left' : 'fa-bars'; 
 
   return (
-    <header className="sticky top-0 z-30 bg-lightbg/80 dark:bg-darkbg/80 backdrop-blur-md shadow-sm p-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-30 bg-lightbg/95 dark:bg-darkbg/95 backdrop-blur-xl shadow-md p-4 sm:px-6 lg:px-8 border-b border-gray-100 dark:border-darkBorder/80">
       <div className="flex items-center justify-between h-12">
         <div className="flex items-center">
             {!isMobileView && (
-                 <button 
-                    onClick={toggleSidebar} 
-                    className="text-lighttext dark:text-darktext hover:text-primary dark:hover:text-primaryLight focus:outline-none mr-3 p-1 rounded-md hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                 <button
+                    onClick={toggleSidebar}
+                    className="text-lighttext dark:text-darktext hover:text-primary dark:hover:text-primaryLight focus:outline-none mr-3 p-1 rounded-full hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
                     aria-label={isSidebarOpen ? t('topbar.closeSidebar', {defaultValue: 'Collapse sidebar'}) : t('topbar.openSidebar', {defaultValue: 'Expand sidebar'})}
                     aria-expanded={isSidebarOpen}
                 >
-                    <i className={`fas ${desktopIconClass} text-xl w-6 h-6 flex items-center justify-center`}></i>
+                    <i className={`fas ${desktopIconClass} text-xl w-6 h-6 flex items-center justify-center transition-transform hover:scale-110`}></i>
                 </button>
             )}
-            <h1 className="text-xl sm:text-2xl font-semibold text-lighttext dark:text-darktext truncate max-w-[calc(100vw-150px)] sm:max-w-md">
+            <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-primaryLight bg-clip-text text-transparent truncate max-w-[calc(100vw-180px)] sm:max-w-md">
                 {pageTitle}
             </h1>
         </div>
@@ -40,7 +40,7 @@ const TopBar: React.FC<TopBarProps> = ({ pageTitle, toggleSidebar, isSidebarOpen
           {isMobileView ? (
             <button
               onClick={() => onNavigate('settings')}
-              className="text-lighttext dark:text-darktext hover:text-primary dark:hover:text-primaryLight focus:outline-none p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+              className="text-lighttext dark:text-darktext hover:text-primary dark:hover:text-primaryLight focus:outline-none p-2 rounded-full hover:bg-primary/10 dark:hover:bg-primary/20 transition-colors"
               aria-label={t('navbar.settings')}
             >
               <i className="fas fa-cog text-xl w-6 h-6 flex items-center justify-center"></i>

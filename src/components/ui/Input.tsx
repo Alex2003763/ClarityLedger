@@ -39,10 +39,17 @@ const Input: React.FC<InputProps> = ({ label, id, error, containerClassName = ''
   
   return (
     <div className={`mb-4 ${containerClassName}`}>
-      {label && <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{label}</label>}
+      {label && (
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1.5
+                   transition-all duration-200 ease-out
+                   peer-focus:text-primary peer-focus:font-semibold">
+          {label}
+        </label>
+      )}
       <div className="relative">
         {leftIcon && (
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none z-10 text-gray-500 dark:text-gray-400
+                          transition-colors group-hover:text-primary dark:group-hover:text-primaryLight">
             {leftIcon}
           </div>
         )}
@@ -51,26 +58,41 @@ const Input: React.FC<InputProps> = ({ label, id, error, containerClassName = ''
           type={type}
           value={value}
           onChange={onChange}
-          className={`mt-1 block w-full px-3 py-2 border ${error ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-darkBorder'} 
-                      rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary 
-                      sm:text-sm bg-white dark:bg-darkSurface text-lighttext dark:text-darktext 
-                      placeholder-gray-400 dark:placeholder-gray-500
+          className={`peer
+                      bg-white dark:bg-gray-800
+                      border border-gray-300 dark:border-gray-600
+                      rounded-xl shadow
+                      transition-all duration-200 ease-out
+                      hover:shadow-md
+                      focus:ring-2 focus:ring-primary/50 focus:border-transparent
+                      focus:shadow-lg
+                      ${error ? 'border-danger dark:border-red-500 bg-red-50/70 dark:bg-red-900/40' : ''}
                       ${leftIcon ? 'pl-10' : ''}
-                      ${showClearButton ? 'pr-10' : ''} ${className}`}
+                      ${showClearButton ? 'pr-10' : ''}
+                      ${className}
+                      text-gray-900 dark:text-gray-100
+                      placeholder-gray-500 dark:placeholder-gray-400`}
           {...props}
         />
         {showClearButton && (
           <button
             type="button"
             onClick={handleClearInput}
-            className="absolute inset-y-0 right-0 pr-3 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors z-10"
+            className="absolute inset-y-0 right-0 pr-3 flex items-center justify-center
+                       text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200
+                       transition-colors z-10 hover:scale-125 active:scale-95"
             aria-label="Clear input"
           >
             <XCircleIcon className="w-5 h-5" />
           </button>
         )}
       </div>
-      {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
+      {error && (
+        <div className="mt-1.5 flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400">
+          <XCircleIcon className="w-4 h-4 flex-shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
     </div>
   );
 };

@@ -209,57 +209,72 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
+    <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8">
       <SummaryDisplay income={income} expenses={expenses} balance={balance} />
       
-      <div className="fintrack-card">
-        <h2 className="fintrack-section-title">{t('dashboard.charts.incomeExpenseTrendTitle')}</h2>
-        <IncomeExpenseTrendChart data={incomeExpenseTrendData} />
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 sm:gap-8">
+        {/* Main Chart - taking more space */}
+        <div className="lg:col-span-3 fintrack-card p-6 rounded-xl shadow-lg bg-white dark:bg-darkElevated border border-gray-100 dark:border-darkBorder">
+          <h2 className="fintrack-section-title">{t('dashboard.charts.incomeExpenseTrendTitle')}</h2>
+          <IncomeExpenseTrendChart data={incomeExpenseTrendData} />
+        </div>
+
+        {/* Side-by-side Pie Chart and Budgets */}
+        <div className="lg:col-span-2 grid grid-cols-1 gap-6 sm:gap-8">
+          <div className="fintrack-card">
+              <h2 className="fintrack-section-title mb-4 text-lg font-semibold text-gray-800 dark:text-gray-100">
+                {t('dashboard.expenseBreakdownTitle')}
+                <span className="ml-2 text-sm text-primary dark:text-primaryLight">● Live</span>
+              </h2>
+              <CategoryPieChart data={expensePieChartData} />
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-        <div className="lg:col-span-2 fintrack-card">
-            <h2 className="fintrack-section-title">{t('dashboard.expenseBreakdownTitle')}</h2>
-            <CategoryPieChart data={expensePieChartData} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+        <div className="fintrack-card">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1">
+                <h2 className="fintrack-section-title flex items-center mb-2 sm:mb-4">
+                    <BanknotesIcon className="w-5 h-5 mr-2.5 text-primary dark:text-primaryLight"/>
+                    {t('dashboard.budgets.title')}
+                </h2>
+                <Button
+                  onClick={() => openBudgetModal()}
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<PlusIcon />}
+                  className="hover:scale-[1.02] transition-transform duration-150"
+                >
+                    {t('dashboard.budgets.addBudgetButton')}
+                </Button>
+            </div>
+            <div className="flex items-center justify-between mb-3 text-sm">
+                <Button
+                  onClick={() => handleMonthChange(-1)}
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('dashboard.budgets.previousMonthAriaLabel')}
+                  className="text-grayText hover:text-primary dark:hover:text-primaryLight rounded-full"
+                >
+                  <ChevronLeftIcon />
+                </Button>
+                <span className="font-medium text-lighttext dark:text-darktext">{currentMonthDisplay}</span>
+                <Button
+                  onClick={() => handleMonthChange(1)}
+                  variant="ghost"
+                  size="icon"
+                  aria-label={t('dashboard.budgets.nextMonthAriaLabel')}
+                  className="text-grayText hover:text-primary dark:hover:text-primaryLight rounded-full"
+                >
+                  <ChevronRightIcon />
+                </Button>
+            </div>
+            {isLoadingBudgets ? <div className="flex justify-center py-4"><Spinner color="text-primary"/></div> : <BudgetList budgets={budgetsForDisplay} onEdit={openBudgetModal} onDelete={handleDeleteBudget} />}
         </div>
         <div className="fintrack-card">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1">
-              <h2 className="fintrack-section-title flex items-center mb-2 sm:mb-4">
-                  <BanknotesIcon className="w-5 h-5 mr-2.5 text-primary dark:text-primaryLight"/>
-                  {t('dashboard.budgets.title')}
-              </h2>
-              <Button onClick={() => openBudgetModal()} variant="primary" size="sm" leftIcon={<PlusIcon />}>
-                  {t('dashboard.budgets.addBudgetButton')}
-              </Button>
-          </div>
-          <div className="flex items-center justify-between mb-3 text-sm">
-              <Button 
-                onClick={() => handleMonthChange(-1)} 
-                variant="ghost" 
-                size="sm" 
-                aria-label={t('dashboard.budgets.previousMonthAriaLabel')}
-                className="text-grayText hover:text-primary dark:hover:text-primaryLight p-1.5"
-              >
-                <ChevronLeftIcon />
-              </Button>
-              <span className="font-medium text-lighttext dark:text-darktext">{currentMonthDisplay}</span>
-              <Button 
-                onClick={() => handleMonthChange(1)} 
-                variant="ghost" 
-                size="sm" 
-                aria-label={t('dashboard.budgets.nextMonthAriaLabel')}
-                className="text-grayText hover:text-primary dark:hover:text-primaryLight p-1.5"
-              >
-                <ChevronRightIcon />
-              </Button>
-          </div>
-          {isLoadingBudgets ? <div className="flex justify-center py-4"><Spinner color="text-primary"/></div> : <BudgetList budgets={budgetsForDisplay} onEdit={openBudgetModal} onDelete={handleDeleteBudget} />}
+          <AiFinancialTip balance={balance} recentTransactionsCount={allTransactions.length} />
         </div>
       </div>
-      
-      <section aria-labelledby="ai-tip-heading" className="fintrack-card">
-        <AiFinancialTip balance={balance} recentTransactionsCount={allTransactions.length} />
-      </section>
 
       <Modal 
         isOpen={isBudgetModalOpen} 
